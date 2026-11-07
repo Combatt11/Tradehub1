@@ -58,8 +58,8 @@ class SellerControllerTest {
   @MockBean private JwtProvider jwtProvider;
 
   /**
-   * Mirrors what JwtAuthFilter does in production: the authentication principal is the raw
-   * user id String (not a UserDetails object).
+   * Mirrors what JwtAuthFilter does in production: the authentication principal is the raw user id
+   * String (not a UserDetails object).
    */
   private static MockHttpServletRequestBuilder asSeller(MockHttpServletRequestBuilder builder) {
     return builder.with(
@@ -261,8 +261,6 @@ class SellerControllerTest {
   @Test
   @DisplayName("GET /api/seller/products returns 403 when the role is not SELLER")
   void myProductsReturns403ForWrongRole() throws Exception {
-    mockMvc
-        .perform(asBuyer(get("/api/seller/products")))
-        .andExpect(status().isForbidden());
+    mockMvc.perform(asBuyer(get("/api/seller/products"))).andExpect(status().isForbidden());
   }
 }

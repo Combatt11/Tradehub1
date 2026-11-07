@@ -60,8 +60,8 @@ class BuyerControllerTest {
   private Order cart;
 
   /**
-   * Mirrors what JwtAuthFilter does in production: the authentication principal is the raw
-   * user id String (not a UserDetails object).
+   * Mirrors what JwtAuthFilter does in production: the authentication principal is the raw user id
+   * String (not a UserDetails object).
    */
   private static MockHttpServletRequestBuilder asBuyer(MockHttpServletRequestBuilder builder) {
     return builder.with(
