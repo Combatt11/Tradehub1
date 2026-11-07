@@ -1,5 +1,6 @@
 package application.adapters.security;
 
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -9,6 +10,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -27,6 +29,7 @@ public class SecurityConfig {
   public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
     http.csrf(csrf -> csrf.disable())
         .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+        .exceptionHandling(ex -> ex.authenticationEntryPoint(restAuthenticationEntryPoint()))
         .authorizeHttpRequests(
             auth ->
                 auth.requestMatchers("/api/public/**", "/h2-console/**", "/actuator/**")
@@ -46,6 +49,12 @@ public class SecurityConfig {
         .headers(h -> h.frameOptions(f -> f.sameOrigin()))
         .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
     return http.build();
+  }
+
+  @Bean
+  public AuthenticationEntryPoint restAuthenticationEntryPoint() {
+    return (request, response, authException) ->
+        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
   }
 
   @Bean
