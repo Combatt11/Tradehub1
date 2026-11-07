@@ -12,21 +12,20 @@ import lombok.Setter;
 @NoArgsConstructor
 public class WarehouseJpaEntity {
 
-    @Id
-    private String id;
+  @Id private String id;
 
-    @Column(nullable = false)
-    private String name;
+  @Column(nullable = false)
+  private String name;
 
-    @Column(nullable = false)
-    private String address;
+  @Column(nullable = false)
+  private String address;
 
-    @Column(nullable = false)
-    private String type;
+  @Column(nullable = false)
+  private String type;
 
-    @Column(nullable = false)
-    private String status;
+  @Column(nullable = false)
+  private String status;
 
-    private String sellerId;
-    private String operatorUserId;
+  private String sellerId;
+  private String operatorUserId;
 }

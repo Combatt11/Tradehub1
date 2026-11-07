@@ -6,9 +6,7 @@ import lombok.Data;
 
 @Data
 public class AddToCartRequest {
-    @NotBlank
-    private String productId;
-    @Positive
-    private int quantity;
-    private String warehouseId; // required for physical products
+  @NotBlank private String productId;
+  @Positive private int quantity;
+  private String warehouseId; // required for physical products
 }

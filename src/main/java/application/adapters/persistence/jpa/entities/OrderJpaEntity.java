@@ -1,12 +1,11 @@
 package application.adapters.persistence.jpa.entities;
 
 import jakarta.persistence.*;
+import java.math.BigDecimal;
+import java.time.Instant;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.math.BigDecimal;
-import java.time.Instant;
 
 @Entity
 @Table(name = "orders")
@@ -15,28 +14,27 @@ import java.time.Instant;
 @NoArgsConstructor
 public class OrderJpaEntity {
 
-    @Id
-    private String id;
+  @Id private String id;
 
-    @Column(nullable = false)
-    private String buyerId;
+  @Column(nullable = false)
+  private String buyerId;
 
-    @Column(nullable = false)
-    private String status;
+  @Column(nullable = false)
+  private String status;
 
-    @Column(nullable = false, precision = 19, scale = 2)
-    private BigDecimal totalAmount;
+  @Column(nullable = false, precision = 19, scale = 2)
+  private BigDecimal totalAmount;
 
-    private String shippingAddress;
+  private String shippingAddress;
 
-    @Column(nullable = false)
-    private Instant createdAt;
+  @Column(nullable = false)
+  private Instant createdAt;
 
-    @Column(nullable = false)
-    private Instant updatedAt;
+  @Column(nullable = false)
+  private Instant updatedAt;
 
-    private String paymentReference;
+  private String paymentReference;
 
-    @Column(length = 4000)
-    private String itemsJson;
+  @Column(length = 4000)
+  private String itemsJson;
 }

@@ -6,13 +6,9 @@ import lombok.Data;
 
 @Data
 public class RegisterBuyerRequest {
-    @NotBlank
-    private String fullName;
-    @NotBlank @Email
-    private String email;
-    @NotBlank
-    private String password;
-    private String identityDocument;
-    @NotBlank
-    private String primaryAddress;
+  @NotBlank private String fullName;
+  @NotBlank @Email private String email;
+  @NotBlank private String password;
+  private String identityDocument;
+  @NotBlank private String primaryAddress;
 }

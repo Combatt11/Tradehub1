@@ -12,19 +12,18 @@ import lombok.Setter;
 @NoArgsConstructor
 public class SellerJpaEntity {
 
-    @Id
-    private String id;
+  @Id private String id;
 
-    @Column(nullable = false, unique = true)
-    private String userId;
+  @Column(nullable = false, unique = true)
+  private String userId;
 
-    @Column(nullable = false)
-    private String businessName;
+  @Column(nullable = false)
+  private String businessName;
 
-    private String taxId;
+  private String taxId;
 
-    @Column(nullable = false)
-    private String status;
+  @Column(nullable = false)
+  private String status;
 
-    private String contactPhone;
+  private String contactPhone;
 }

@@ -1,5 +1,7 @@
 # TradeHub
 
+![CI](https://github.com/juanestevan-tdea/tradehub/actions/workflows/ci.yml/badge.svg)
+
 Marketplace platform built with **Spring Boot 3**, **Hexagonal Architecture** (Ports & Adapters), JWT security and Docker.
 
 This project follows the same structure and conventions as the professor's *bank* project, adapted to a marketplace functional specification.
@@ -52,6 +54,55 @@ App runs at `http://localhost:8080`
 ```bash
 docker build -t tradehub .
 docker run -p 8080:8080 tradehub
+```
+
+## Development Setup
+
+### Prerequisites
+
+- **Java 17** (the build enforces this via `maven-enforcer-plugin`)
+- **Maven 3.8+**, or use the bundled Maven Wrapper (`./mvnw`) — no local Maven needed
+
+### After cloning the repository
+
+> **Windows users:** set the line-ending policy to `false` (or `input`) before building.
+> With `core.autocrlf=true` git rewrites the LF endings stored in the index to CRLF in the
+> working tree, and Spotless (`mvn verify`) then fails reporting CRLF lines on files that
+> `git status` considers clean.
+
+```bash
+# Disable automatic CRLF conversion (local repo config, not committed)
+git config core.autocrlf false
+```
+
+Line endings are enforced by `.gitattributes` (`* text=auto eol=lf`, `*.cmd text eol=crlf`).
+
+### Build and verify
+
+```bash
+./mvnw clean verify
+```
+
+This runs, in order:
+
+1. `maven-enforcer-plugin` — fails fast unless Java ≥ 17 and Maven ≥ 3.8
+2. `maven-surefire-plugin` — unit and MVC slice tests
+3. `jacoco-maven-plugin` — coverage report in `target/site/jacoco/index.html` and a **60 % line-coverage gate**
+4. `spotless-maven-plugin` — formatting check (Google Java Format)
+
+To auto-fix formatting before committing:
+
+```bash
+./mvnw spotless:apply
+```
+
+### Local secrets
+
+`jwt.secret` is read from the `JWT_SECRET` environment variable (with a development
+fallback). Copy the example file and set your own value; `.env` is git-ignored.
+
+```bash
+cp .env.example .env
 ```
 
 ## Seeded users
