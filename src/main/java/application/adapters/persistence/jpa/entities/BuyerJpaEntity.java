@@ -12,18 +12,17 @@ import lombok.Setter;
 @NoArgsConstructor
 public class BuyerJpaEntity {
 
-    @Id
-    private String id;
+  @Id private String id;
 
-    @Column(nullable = false, unique = true)
-    private String userId;
+  @Column(nullable = false, unique = true)
+  private String userId;
 
-    @Column(nullable = false)
-    private String primaryAddress;
+  @Column(nullable = false)
+  private String primaryAddress;
 
-    @Column(length = 2000)
-    private String additionalAddressesJson;
+  @Column(length = 2000)
+  private String additionalAddressesJson;
 
-    @Column(nullable = false)
-    private String commercialStatus;
+  @Column(nullable = false)
+  private String commercialStatus;
 }

@@ -1,11 +1,10 @@
 package application.adapters.persistence.jpa.entities;
 
 import jakarta.persistence.*;
+import java.math.BigDecimal;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.math.BigDecimal;
 
 @Entity
 @Table(name = "products")
@@ -14,29 +13,28 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 public class ProductJpaEntity {
 
-    @Id
-    private String id;
+  @Id private String id;
 
-    @Column(nullable = false)
-    private String sellerId;
+  @Column(nullable = false)
+  private String sellerId;
 
-    @Column(nullable = false)
-    private String name;
+  @Column(nullable = false)
+  private String name;
 
-    @Column(length = 2000)
-    private String description;
+  @Column(length = 2000)
+  private String description;
 
-    @Column(nullable = false)
-    private String type;
+  @Column(nullable = false)
+  private String type;
 
-    @Column(nullable = false, precision = 19, scale = 2)
-    private BigDecimal price;
+  @Column(nullable = false, precision = 19, scale = 2)
+  private BigDecimal price;
 
-    @Column(nullable = false)
-    private String status;
+  @Column(nullable = false)
+  private String status;
 
-    @Column(length = 1000)
-    private String variantsJson;
+  @Column(length = 1000)
+  private String variantsJson;
 
-    private String sku;
+  private String sku;
 }

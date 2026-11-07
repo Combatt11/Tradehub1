@@ -8,19 +8,21 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class PublishProductService {
-    private final ProductRepositoryPort productRepository;
+  private final ProductRepositoryPort productRepository;
 
-    public PublishProductService(ProductRepositoryPort productRepository) {
-        this.productRepository = productRepository;
-    }
+  public PublishProductService(ProductRepositoryPort productRepository) {
+    this.productRepository = productRepository;
+  }
 
-    @Transactional
-    public Product execute(String productId, String sellerId) {
-        Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new UnauthorizedOperationException("Product not found"));
-        if (!product.getSellerId().equals(sellerId))
-            throw new UnauthorizedOperationException("Product does not belong to this seller");
-        product.publish();
-        return productRepository.save(product);
-    }
+  @Transactional
+  public Product execute(String productId, String sellerId) {
+    Product product =
+        productRepository
+            .findById(productId)
+            .orElseThrow(() -> new UnauthorizedOperationException("Product not found"));
+    if (!product.getSellerId().equals(sellerId))
+      throw new UnauthorizedOperationException("Product does not belong to this seller");
+    product.publish();
+    return productRepository.save(product);
+  }
 }
