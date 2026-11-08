@@ -1,5 +1,6 @@
 package application.domain.models;
 
+import application.domain.exceptions.InvalidOrderItemPriceException;
 import application.domain.exceptions.InvalidQuantityException;
 import java.math.BigDecimal;
 import java.util.Objects;
@@ -21,7 +22,10 @@ public class OrderItem {
     this.productName = productName;
     if (quantity <= 0) throw new InvalidQuantityException("Order item quantity must be positive");
     this.quantity = quantity;
-    this.unitPrice = Objects.requireNonNull(unitPrice);
+    if (unitPrice == null || unitPrice.signum() <= 0) {
+      throw new InvalidOrderItemPriceException(String.valueOf(unitPrice));
+    }
+    this.unitPrice = unitPrice;
     this.warehouseId = warehouseId;
   }
 

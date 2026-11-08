@@ -1,5 +1,6 @@
 package application.domain.services.user;
 
+import application.domain.exceptions.InvalidPasswordException;
 import application.domain.models.Buyer;
 import application.domain.models.User;
 import application.domain.ports.in.RegisterBuyerUseCase;
@@ -36,6 +37,7 @@ public class RegisterBuyerService implements RegisterBuyerUseCase {
       String identityDocument,
       String primaryAddress) {
     emailUniquenessValidator.ensureAvailable(email);
+    if (rawPassword == null || rawPassword.isBlank()) throw new InvalidPasswordException();
     String hash = passwordEncoder.encode(rawPassword);
     User user = User.create(fullName, email, hash, User.Role.BUYER, identityDocument);
     user = userRepository.save(user);

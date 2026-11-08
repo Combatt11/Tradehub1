@@ -1,5 +1,10 @@
 package application.domain.models;
 
+import application.domain.exceptions.InvalidPasswordException;
+import application.domain.exceptions.InvalidUserNameException;
+import application.domain.exceptions.UserAlreadyActiveException;
+import application.domain.exceptions.UserAlreadyBlockedException;
+import application.domain.exceptions.UserAlreadyInactiveException;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -35,7 +40,8 @@ public class User {
       Status status,
       String identityDocument) {
     this.id = id != null ? id : UUID.randomUUID().toString();
-    this.fullName = Objects.requireNonNull(fullName, "fullName is required");
+    if (fullName == null || fullName.isBlank()) throw new InvalidUserNameException();
+    this.fullName = fullName;
     this.email = Objects.requireNonNull(email, "email is required");
     this.passwordHash = passwordHash;
     this.role = Objects.requireNonNull(role, "role is required");
@@ -49,19 +55,25 @@ public class User {
   }
 
   public void block() {
+    if (status == Status.BLOCKED) throw new UserAlreadyBlockedException(id);
     this.status = Status.BLOCKED;
   }
 
   public void activate() {
+    if (status == Status.ACTIVE) throw new UserAlreadyActiveException(id);
     this.status = Status.ACTIVE;
   }
 
   public void deactivate() {
+    if (status == Status.INACTIVE) throw new UserAlreadyInactiveException(id);
     this.status = Status.INACTIVE;
   }
 
   public void changePassword(String newPasswordHash) {
-    this.passwordHash = Objects.requireNonNull(newPasswordHash);
+    if (newPasswordHash == null || newPasswordHash.isBlank()) {
+      throw new InvalidPasswordException();
+    }
+    this.passwordHash = newPasswordHash;
   }
 
   public boolean isActive() {
@@ -97,7 +109,8 @@ public class User {
   }
 
   public void setFullName(String fullName) {
-    this.fullName = Objects.requireNonNull(fullName);
+    if (fullName == null || fullName.isBlank()) throw new InvalidUserNameException();
+    this.fullName = fullName;
   }
 
   public void setEmail(String email) {

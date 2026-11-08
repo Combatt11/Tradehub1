@@ -11,7 +11,9 @@ import application.domain.exceptions.OrderNotCancellableException;
 import application.domain.exceptions.OrderNotFoundException;
 import application.domain.exceptions.OrderOwnershipException;
 import application.domain.models.Order;
+import application.domain.models.OrderItem;
 import application.domain.ports.out.OrderRepositoryPort;
+import java.math.BigDecimal;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -73,6 +75,8 @@ class CancelOrderServiceTest {
   @DisplayName("throws when the order is already dispatched")
   void throwsWhenOrderIsNotCancellable() {
     Order order = Order.createCart(BUYER_ID);
+    order.addItem(new OrderItem("product-1", "Laptop", 1, new BigDecimal("100.00"), "wh-1"));
+    order.submitForPayment("Calle 1");
     order.confirmPayment("PAY-1");
     order.markDispatched();
     when(orderRepository.findById(ORDER_ID)).thenReturn(Optional.of(order));

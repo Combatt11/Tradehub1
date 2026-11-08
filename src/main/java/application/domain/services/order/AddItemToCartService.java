@@ -1,8 +1,10 @@
 package application.domain.services.order;
 
 import application.domain.exceptions.BuyerNotFoundException;
-import application.domain.exceptions.InsufficientStockException;
+import application.domain.exceptions.InvalidQuantityException;
 import application.domain.exceptions.ProductNotFoundException;
+import application.domain.exceptions.ProductOutOfStockException;
+import application.domain.exceptions.WarehouseRequiredException;
 import application.domain.models.Buyer;
 import application.domain.models.InventoryItem;
 import application.domain.models.Order;
@@ -42,6 +44,7 @@ public class AddItemToCartService implements AddItemToCartUseCase {
   @Override
   @Transactional
   public Order addItem(String buyerId, String productId, int quantity, String warehouseId) {
+    if (quantity <= 0) throw new InvalidQuantityException("Quantity must be positive");
     Buyer buyer =
         buyerRepository.findById(buyerId).orElseThrow(() -> new BuyerNotFoundException(buyerId));
     buyer.ensureCanPurchase();
@@ -53,10 +56,13 @@ public class AddItemToCartService implements AddItemToCartUseCase {
     product.ensureAvailableForSale();
 
     if (product.isPhysical()) {
+      if (warehouseId == null || warehouseId.isBlank()) {
+        throw new WarehouseRequiredException(productId);
+      }
       InventoryItem inventory =
           inventoryRepository
               .findByProductAndWarehouse(productId, warehouseId)
-              .orElseThrow(() -> new InsufficientStockException(productId, quantity, 0));
+              .orElseThrow(() -> new ProductOutOfStockException(productId));
       inventory.reserve(quantity);
       inventoryRepository.save(inventory);
     }

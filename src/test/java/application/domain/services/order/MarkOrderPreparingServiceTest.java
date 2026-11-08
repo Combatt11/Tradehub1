@@ -42,6 +42,7 @@ class MarkOrderPreparingServiceTest {
 
   private void givenOrderInStatus(Order.OrderStatus status) {
     if (status == Order.OrderStatus.PAID) {
+      order.submitForPayment("Calle 1");
       order.confirmPayment("PAY-1");
     }
     when(orderRepository.findById(ORDER_ID)).thenReturn(Optional.of(order));

@@ -1,13 +1,15 @@
 package application.domain.models;
 
 import application.domain.exceptions.EmptyCartException;
+import application.domain.exceptions.InvalidPaymentReferenceException;
 import application.domain.exceptions.OrderAlreadyPaidException;
+import application.domain.exceptions.OrderItemNotFoundException;
 import application.domain.exceptions.OrderNotCancellableException;
 import application.domain.exceptions.OrderNotDeliverableException;
 import application.domain.exceptions.OrderNotDispatchableException;
 import application.domain.exceptions.OrderNotFinalizableException;
 import application.domain.exceptions.OrderNotModifiableException;
-import application.domain.exceptions.OrderNotPayableException;
+import application.domain.exceptions.OrderNotPendingException;
 import application.domain.exceptions.OrderNotPreparableException;
 import application.domain.exceptions.OrderNotSubmittableException;
 import application.domain.exceptions.OrderOwnershipException;
@@ -84,7 +86,10 @@ public class Order {
 
   public void removeItem(String productId) {
     ensureModifiable();
-    this.items.removeIf(i -> i.getProductId().equals(productId));
+    boolean removed = this.items.removeIf(i -> i.getProductId().equals(productId));
+    if (!removed) {
+      throw new OrderItemNotFoundException(id, productId);
+    }
     recalculateTotal();
     touch();
   }
@@ -97,11 +102,8 @@ public class Order {
   }
 
   public void confirmPayment(String paymentReference) {
-    if (status == OrderStatus.CART || status == OrderStatus.PENDING_PAYMENT) {
-      this.paymentReference = paymentReference;
-      this.status = OrderStatus.PAID;
-      touch();
-      return;
+    if (paymentReference == null || paymentReference.isBlank()) {
+      throw new InvalidPaymentReferenceException();
     }
     if (status == OrderStatus.PAID
         || status == OrderStatus.PREPARING
@@ -110,7 +112,12 @@ public class Order {
         || status == OrderStatus.FINALIZED) {
       throw new OrderAlreadyPaidException(id);
     }
-    throw new OrderNotPayableException(id, status.name());
+    if (status != OrderStatus.PENDING_PAYMENT) {
+      throw new OrderNotPendingException(id, status.name());
+    }
+    this.paymentReference = paymentReference;
+    this.status = OrderStatus.PAID;
+    touch();
   }
 
   public void markPreparing() {

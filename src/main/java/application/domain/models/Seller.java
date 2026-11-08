@@ -1,5 +1,8 @@
 package application.domain.models;
 
+import application.domain.exceptions.InvalidSellerBusinessNameException;
+import application.domain.exceptions.SellerAlreadyApprovedException;
+import application.domain.exceptions.SellerAlreadySuspendedException;
 import application.domain.exceptions.SellerNotApprovedException;
 import java.util.Objects;
 import java.util.UUID;
@@ -27,7 +30,10 @@ public class Seller {
       String contactPhone) {
     this.id = id != null ? id : UUID.randomUUID().toString();
     this.userId = Objects.requireNonNull(userId);
-    this.businessName = Objects.requireNonNull(businessName);
+    if (businessName == null || businessName.isBlank()) {
+      throw new InvalidSellerBusinessNameException();
+    }
+    this.businessName = businessName;
     this.taxId = taxId;
     this.status = status != null ? status : SellerStatus.PENDING_APPROVAL;
     this.contactPhone = contactPhone;
@@ -40,10 +46,12 @@ public class Seller {
   }
 
   public void approve() {
+    if (status == SellerStatus.ACTIVE) throw new SellerAlreadyApprovedException(id);
     this.status = SellerStatus.ACTIVE;
   }
 
   public void suspend() {
+    if (status == SellerStatus.SUSPENDED) throw new SellerAlreadySuspendedException(id);
     this.status = SellerStatus.SUSPENDED;
   }
 
@@ -82,7 +90,10 @@ public class Seller {
   }
 
   public void setBusinessName(String businessName) {
-    this.businessName = Objects.requireNonNull(businessName);
+    if (businessName == null || businessName.isBlank()) {
+      throw new InvalidSellerBusinessNameException();
+    }
+    this.businessName = businessName;
   }
 
   public void setContactPhone(String contactPhone) {

@@ -37,6 +37,7 @@ class FinalizeOrderServiceTest {
   void setUp() {
     order = Order.createCart("buyer-1");
     order.addItem(new OrderItem("product-1", "Laptop", 1, new BigDecimal("100.00"), "wh-1"));
+    order.submitForPayment("Calle 1");
     order.confirmPayment("PAY-1");
     order.markDispatched();
   }

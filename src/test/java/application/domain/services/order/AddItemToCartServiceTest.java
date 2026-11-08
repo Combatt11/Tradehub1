@@ -11,8 +11,11 @@ import static org.mockito.Mockito.when;
 import application.domain.exceptions.BuyerCannotPurchaseException;
 import application.domain.exceptions.BuyerNotFoundException;
 import application.domain.exceptions.InsufficientStockException;
+import application.domain.exceptions.InvalidQuantityException;
 import application.domain.exceptions.ProductNotAvailableException;
 import application.domain.exceptions.ProductNotFoundException;
+import application.domain.exceptions.ProductOutOfStockException;
+import application.domain.exceptions.WarehouseRequiredException;
 import application.domain.models.Buyer;
 import application.domain.models.InventoryItem;
 import application.domain.models.Order;
@@ -203,11 +206,31 @@ class AddItemToCartServiceTest {
   }
 
   @Nested
+  @DisplayName("quantity validation")
+  class QuantityValidation {
+
+    @Test
+    @DisplayName("throws when the requested quantity is zero or negative")
+    void throwsWhenQuantityIsNotPositive() {
+      assertThatThrownBy(() -> service.addItem(BUYER_ID, PRODUCT_ID, 0, WAREHOUSE_ID))
+          .isInstanceOf(InvalidQuantityException.class)
+          .hasMessage("Quantity must be positive");
+
+      assertThatThrownBy(() -> service.addItem(BUYER_ID, PRODUCT_ID, -3, WAREHOUSE_ID))
+          .isInstanceOf(InvalidQuantityException.class)
+          .hasMessage("Quantity must be positive");
+
+      verifyNoInteractions(
+          buyerRepository, productRepository, inventoryRepository, orderRepository, getCartUseCase);
+    }
+  }
+
+  @Nested
   @DisplayName("stock validation")
   class StockValidation {
 
     @Test
-    @DisplayName("throws InsufficientStockException when there is no inventory record")
+    @DisplayName("throws ProductOutOfStockException when there is no inventory record")
     void throwsWhenInventoryRecordMissing() {
       when(buyerRepository.findById(BUYER_ID)).thenReturn(Optional.of(activeBuyer()));
       when(productRepository.findById(PRODUCT_ID))
@@ -216,13 +239,44 @@ class AddItemToCartServiceTest {
           .thenReturn(Optional.empty());
 
       assertThatThrownBy(() -> service.addItem(BUYER_ID, PRODUCT_ID, 2, WAREHOUSE_ID))
-          .isInstanceOf(InsufficientStockException.class)
-          .hasMessageContaining("Insufficient stock for product product-1")
-          .hasMessageContaining("Requested: 2, Available: 0");
+          .isInstanceOf(ProductOutOfStockException.class)
+          .hasMessage("Product is out of stock: product-1");
 
       verify(inventoryRepository, never()).save(any());
       verify(orderRepository, never()).save(any());
       verifyNoInteractions(getCartUseCase);
+    }
+
+    @Test
+    @DisplayName("throws WarehouseRequiredException when a physical product has no warehouse")
+    void throwsWhenPhysicalProductHasNoWarehouse() {
+      when(buyerRepository.findById(BUYER_ID)).thenReturn(Optional.of(activeBuyer()));
+      when(productRepository.findById(PRODUCT_ID))
+          .thenReturn(Optional.of(publishedPhysicalProduct()));
+
+      assertThatThrownBy(() -> service.addItem(BUYER_ID, PRODUCT_ID, 2, " "))
+          .isInstanceOf(WarehouseRequiredException.class)
+          .hasMessage("A warehouse is required for physical product: product-1");
+
+      verifyNoInteractions(inventoryRepository, orderRepository, getCartUseCase);
+    }
+
+    @Test
+    @DisplayName("throws ProductOutOfStockException when available stock is zero")
+    void throwsWhenProductIsOutOfStock() {
+      InventoryItem inventory = InventoryItem.create(PRODUCT_ID, WAREHOUSE_ID, 0);
+      when(buyerRepository.findById(BUYER_ID)).thenReturn(Optional.of(activeBuyer()));
+      when(productRepository.findById(PRODUCT_ID))
+          .thenReturn(Optional.of(publishedPhysicalProduct()));
+      when(inventoryRepository.findByProductAndWarehouse(PRODUCT_ID, WAREHOUSE_ID))
+          .thenReturn(Optional.of(inventory));
+
+      assertThatThrownBy(() -> service.addItem(BUYER_ID, PRODUCT_ID, 1, WAREHOUSE_ID))
+          .isInstanceOf(ProductOutOfStockException.class)
+          .hasMessage("Product is out of stock: product-1");
+
+      verify(inventoryRepository, never()).save(any());
+      verify(orderRepository, never()).save(any());
     }
 
     @Test

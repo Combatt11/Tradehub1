@@ -1,5 +1,6 @@
 package application.domain.services.user;
 
+import application.domain.exceptions.InvalidUserStatusException;
 import application.domain.exceptions.UserNotFoundException;
 import application.domain.models.User;
 import application.domain.ports.in.ChangeUserStatusUseCase;
@@ -19,6 +20,7 @@ public class ChangeUserStatusService implements ChangeUserStatusUseCase {
   @Override
   @Transactional
   public User changeUserStatus(String userId, User.Status status) {
+    if (status == null) throw new InvalidUserStatusException();
     User user =
         userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
     switch (status) {

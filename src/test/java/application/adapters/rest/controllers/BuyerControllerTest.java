@@ -20,6 +20,7 @@ import application.adapters.security.SecurityConfig;
 import application.domain.exceptions.CartNotFoundException;
 import application.domain.exceptions.InsufficientStockException;
 import application.domain.exceptions.OrderNotFoundException;
+import application.domain.exceptions.OrderNotPendingException;
 import application.domain.models.Buyer;
 import application.domain.models.Order;
 import application.domain.models.OrderItem;
@@ -247,6 +248,7 @@ class BuyerControllerTest {
     givenBuyerProfile();
     Order paid = Order.createCart(BUYER_ID);
     paid.addItem(new OrderItem("product-1", "Laptop", 1, new BigDecimal("50.00"), "wh-1"));
+    paid.submitForPayment("Calle 99");
     paid.confirmPayment("PAY-1");
     when(confirmPaymentUseCase.confirmPayment(eq("order-1"), anyString(), eq("PAY-1")))
         .thenReturn(paid);
@@ -262,6 +264,26 @@ class BuyerControllerTest {
                         """)))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.status").value("PAID"));
+  }
+
+  @Test
+  @DisplayName("POST /api/buyer/orders/{id}/pay returns 400 when the order is not pending payment")
+  void confirmPaymentReturns400WhenOrderIsNotPending() throws Exception {
+    givenBuyerProfile();
+    when(confirmPaymentUseCase.confirmPayment(anyString(), anyString(), any()))
+        .thenThrow(new OrderNotPendingException("order-1", "CART"));
+
+    mockMvc
+        .perform(
+            asBuyer(
+                post("/api/buyer/orders/order-1/pay")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(
+                        """
+                        {"paymentReference":"PAY-1"}
+                        """)))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.error").value("Order order-1 is not pending payment. Status: CART"));
   }
 
   @Test

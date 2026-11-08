@@ -503,7 +503,7 @@ Response típica:
 
 | Excepción | HTTP | Cuándo |
 |-----------|------|--------|
-| `ResourceNotFoundException` y subclases | 404 | `Buyer`, `Seller`, `Product`, `Warehouse`, `Order`, `Cart`, `User` inexistente. |
+| `ResourceNotFoundException` y subclases | 404 | `Buyer`, `Seller`, `Product`, `Warehouse`, `Order`, `Cart`, `OrderItem`, `User` inexistente. |
 | `DuplicateEmailException` | 409 | Email ya registrado. |
 | `InvalidCredentialsException` | 401 | Login inválido o usuario inactivo. |
 | `UnauthorizedOperationException` y subclases | 403 | Comprador suspendido, vendedor no aprobado, recurso ajeno. |
@@ -518,9 +518,9 @@ Response típica:
 
 | Familia | Subclases principales |
 |---------|-----------------------|
-| `ResourceNotFoundException` | `UserNotFoundException`, `BuyerNotFoundException`, `SellerNotFoundException`, `ProductNotFoundException`, `WarehouseNotFoundException`, `OrderNotFoundException`, `CartNotFoundException` |
+| `ResourceNotFoundException` | `UserNotFoundException`, `BuyerNotFoundException`, `SellerNotFoundException`, `ProductNotFoundException`, `WarehouseNotFoundException`, `OrderNotFoundException`, `CartNotFoundException`, `OrderItemNotFoundException` |
 | `UnauthorizedOperationException` | `BuyerCannotPurchaseException`, `SellerNotApprovedException`, `ProductOwnershipException`, `OrderOwnershipException` |
-| `DomainException` | `InvalidQuantityException`, `InsufficientStockException`, `EmptyCartException`, `ShippingAddressRequiredException`, `InvalidProductNameException`, `InvalidProductPriceException`, `InvalidProductTypeException`, `ProductNotAvailableException`, `ProductNotPhysicalException`, `OrderAlreadyPaidException`, `OrderNotPayableException`, `OrderNotPreparableException`, `OrderNotDispatchableException`, `OrderNotDeliverableException`, `OrderNotFinalizableException`, `OrderNotCancellableException`, `OrderNotSubmittableException`, `OrderNotModifiableException` |
+| `DomainException` | `InvalidQuantityException`, `InsufficientStockException`, `ProductOutOfStockException`, `ReservationExceedsReservedException`, `EmptyCartException`, `ShippingAddressRequiredException`, `WarehouseRequiredException`, `InvalidPaymentReferenceException`, `OrderNotPendingException`, `InvalidOrderItemPriceException`, `InvalidProductNameException`, `InvalidProductPriceException`, `InvalidProductTypeException`, `ProductNotAvailableException`, `ProductNotPhysicalException`, `ProductAlreadyPublishedException`, `ProductAlreadySuspendedException`, `ProductAlreadyDiscontinuedException`, `ProductNotPublishableException`, `OrderAlreadyPaidException`, `OrderNotPayableException`, `OrderNotPreparableException`, `OrderNotDispatchableException`, `OrderNotDeliverableException`, `OrderNotFinalizableException`, `OrderNotCancellableException`, `OrderNotSubmittableException`, `OrderNotModifiableException`, `UserAlreadyActiveException`, `UserAlreadyBlockedException`, `UserAlreadyInactiveException`, `InvalidUserStatusException`, `InvalidPasswordException`, `InvalidUserNameException`, `SellerAlreadyApprovedException`, `SellerAlreadySuspendedException`, `InvalidSellerBusinessNameException`, `SellerRequiredForWarehouseException`, `WarehouseAlreadyActiveException`, `WarehouseAlreadyInactiveException`, `InvalidWarehouseNameException`, `InvalidWarehouseAddressException`, `BuyerAlreadyActiveException`, `BuyerAlreadySuspendedException`, `BuyerAddressRequiredException` |
 
 ## 9. Ejemplo de error
 

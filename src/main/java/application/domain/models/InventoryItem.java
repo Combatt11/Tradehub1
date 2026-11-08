@@ -2,6 +2,8 @@ package application.domain.models;
 
 import application.domain.exceptions.InsufficientStockException;
 import application.domain.exceptions.InvalidQuantityException;
+import application.domain.exceptions.ProductOutOfStockException;
+import application.domain.exceptions.ReservationExceedsReservedException;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -31,9 +33,12 @@ public class InventoryItem {
     this.id = id != null ? id : UUID.randomUUID().toString();
     this.productId = Objects.requireNonNull(productId);
     this.warehouseId = Objects.requireNonNull(warehouseId);
-    this.quantityAvailable = Math.max(0, quantityAvailable);
-    this.quantityReserved = Math.max(0, quantityReserved);
-    this.quantityDamaged = Math.max(0, quantityDamaged);
+    if (quantityAvailable < 0 || quantityReserved < 0 || quantityDamaged < 0) {
+      throw new InvalidQuantityException("Inventory quantities cannot be negative");
+    }
+    this.quantityAvailable = quantityAvailable;
+    this.quantityReserved = quantityReserved;
+    this.quantityDamaged = quantityDamaged;
   }
 
   public static InventoryItem create(String productId, String warehouseId, int initialQuantity) {
@@ -41,12 +46,15 @@ public class InventoryItem {
   }
 
   public void addStock(int amount) {
-    if (amount < 0) throw new InvalidQuantityException("Cannot add negative stock");
+    if (amount <= 0) throw new InvalidQuantityException("Stock amount must be positive");
     this.quantityAvailable += amount;
   }
 
   public void reserve(int amount) {
     if (amount <= 0) throw new InvalidQuantityException("Reservation amount must be positive");
+    if (quantityAvailable == 0) {
+      throw new ProductOutOfStockException(productId);
+    }
     if (quantityAvailable < amount) {
       throw new InsufficientStockException(productId, amount, quantityAvailable);
     }
@@ -55,20 +63,24 @@ public class InventoryItem {
   }
 
   public void releaseReservation(int amount) {
-    if (amount <= 0) return;
-    int toRelease = Math.min(amount, quantityReserved);
-    this.quantityReserved -= toRelease;
-    this.quantityAvailable += toRelease;
+    if (amount <= 0) throw new InvalidQuantityException("Release amount must be positive");
+    if (amount > quantityReserved) {
+      throw new ReservationExceedsReservedException(productId, amount, quantityReserved);
+    }
+    this.quantityReserved -= amount;
+    this.quantityAvailable += amount;
   }
 
   public void confirmSale(int amount) {
-    if (amount <= 0) return;
-    int toConfirm = Math.min(amount, quantityReserved);
-    this.quantityReserved -= toConfirm;
+    if (amount <= 0) throw new InvalidQuantityException("Sale amount must be positive");
+    if (amount > quantityReserved) {
+      throw new ReservationExceedsReservedException(productId, amount, quantityReserved);
+    }
+    this.quantityReserved -= amount;
   }
 
   public void markDamaged(int amount) {
-    if (amount <= 0) return;
+    if (amount <= 0) throw new InvalidQuantityException("Damaged amount must be positive");
     if (quantityAvailable < amount) {
       throw new InsufficientStockException(productId, amount, quantityAvailable);
     }

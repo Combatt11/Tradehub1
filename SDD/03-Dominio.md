@@ -312,7 +312,7 @@ Reglas de transición:
 
 | Operación | Estados permitidos | Excepción si falla |
 |-----------|--------------------|--------------------|
-| `confirmPayment` | `CART`, `PENDING_PAYMENT` | `OrderAlreadyPaidException` si ya está pagada; `OrderNotPayableException` en otro estado. |
+| `confirmPayment` | `PENDING_PAYMENT` | `InvalidPaymentReferenceException` si falta la referencia; `OrderAlreadyPaidException` si ya está pagada; `OrderNotPendingException` en otro estado. |
 | `markPreparing` | `PAID` | `OrderNotPreparableException` |
 | `markDispatched` | `PAID`, `PREPARING` | `OrderNotDispatchableException` |
 | `markDelivered` | `DISPATCHED` | `OrderNotDeliverableException` |
@@ -377,6 +377,18 @@ stateDiagram-v2
 | 18 | No se puede cancelar una orden despachada, entregada o finalizada. | `Order.cancel()` | `OrderNotCancellableException` |
 | 19 | No se puede enviar a pago un carrito vacío. | `Order.submitForPayment()` | `EmptyCartException` |
 | 20 | Se requiere dirección de envío. | `Order.submitForPayment()` | `ShippingAddressRequiredException` |
+| 21 | La referencia de pago es obligatoria. | `Order.confirmPayment()` | `InvalidPaymentReferenceException` |
+| 22 | Solo se paga una orden pendiente de pago. | `Order.confirmPayment()` | `OrderNotPendingException` |
+| 23 | Debe existir stock disponible en el almacén. | `InventoryItem.reserve()`, `AddItemToCartService` | `ProductOutOfStockException` |
+| 24 | No se liberan ni venden más unidades reservadas de las existentes. | `InventoryItem.releaseReservation()`, `confirmSale()` | `ReservationExceedsReservedException` |
+| 25 | No se repite la transición al estado actual. | `User`, `Buyer`, `Seller`, `Warehouse`, `Product` | `UserAlready*Exception`, `BuyerAlready*Exception`, `SellerAlready*Exception`, `WarehouseAlready*Exception`, `ProductAlready*Exception` |
+| 26 | Un producto discontinuado no se publica. | `Product.publish()` | `ProductNotPublishableException` |
+| 27 | El ítem de orden requiere precio unitario positivo. | `OrderItem` | `InvalidOrderItemPriceException` |
+| 28 | Los productos físicos requieren almacén. | `AddItemToCartService` | `WarehouseRequiredException` |
+| 29 | Los datos maestros obligatorios no pueden estar vacíos. | `User`, `Buyer`, `Seller`, `Warehouse` | `InvalidUserNameException`, `InvalidPasswordException`, `BuyerAddressRequiredException`, `InvalidSellerBusinessNameException`, `InvalidWarehouseNameException`, `InvalidWarehouseAddressException` |
+| 30 | Un almacén de vendedor requiere un vendedor existente y activo. | `RegisterSellerWarehouseService` | `SellerRequiredForWarehouseException`, `SellerNotFoundException`, `SellerNotApprovedException` |
+| 31 | No se elimina un producto que no pertenece a la orden. | `Order.removeItem()` | `OrderItemNotFoundException` |
+| 32 | El estado de usuario es obligatorio. | `ChangeUserStatusService` | `InvalidUserStatusException` |
 
 ## 6. Jerarquía de excepciones
 
@@ -405,7 +417,35 @@ classDiagram
   DomainException <|-- OrderNotModifiableException
   DomainException <|-- EmptyCartException
   DomainException <|-- ShippingAddressRequiredException
+  DomainException <|-- InvalidPaymentReferenceException
+  DomainException <|-- OrderNotPendingException
+  DomainException <|-- InvalidOrderItemPriceException
+  DomainException <|-- ProductOutOfStockException
+  DomainException <|-- ReservationExceedsReservedException
+  DomainException <|-- WarehouseRequiredException
+  DomainException <|-- UserAlreadyActiveException
+  DomainException <|-- UserAlreadyBlockedException
+  DomainException <|-- UserAlreadyInactiveException
+  DomainException <|-- InvalidUserStatusException
+  DomainException <|-- InvalidPasswordException
+  DomainException <|-- InvalidUserNameException
+  DomainException <|-- SellerAlreadyApprovedException
+  DomainException <|-- SellerAlreadySuspendedException
+  DomainException <|-- InvalidSellerBusinessNameException
+  DomainException <|-- SellerRequiredForWarehouseException
+  DomainException <|-- WarehouseAlreadyActiveException
+  DomainException <|-- WarehouseAlreadyInactiveException
+  DomainException <|-- InvalidWarehouseNameException
+  DomainException <|-- InvalidWarehouseAddressException
+  DomainException <|-- ProductAlreadyPublishedException
+  DomainException <|-- ProductAlreadySuspendedException
+  DomainException <|-- ProductAlreadyDiscontinuedException
+  DomainException <|-- ProductNotPublishableException
+  DomainException <|-- BuyerAlreadyActiveException
+  DomainException <|-- BuyerAlreadySuspendedException
+  DomainException <|-- BuyerAddressRequiredException
 
+  ResourceNotFoundException <|-- OrderItemNotFoundException
   ResourceNotFoundException <|-- UserNotFoundException
   ResourceNotFoundException <|-- BuyerNotFoundException
   ResourceNotFoundException <|-- SellerNotFoundException

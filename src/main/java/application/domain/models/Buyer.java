@@ -1,5 +1,8 @@
 package application.domain.models;
 
+import application.domain.exceptions.BuyerAddressRequiredException;
+import application.domain.exceptions.BuyerAlreadyActiveException;
+import application.domain.exceptions.BuyerAlreadySuspendedException;
 import application.domain.exceptions.BuyerCannotPurchaseException;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,7 +30,10 @@ public class Buyer {
       CommercialStatus commercialStatus) {
     this.id = id != null ? id : UUID.randomUUID().toString();
     this.userId = Objects.requireNonNull(userId);
-    this.primaryAddress = Objects.requireNonNull(primaryAddress, "primaryAddress is required");
+    if (primaryAddress == null || primaryAddress.isBlank()) {
+      throw new BuyerAddressRequiredException();
+    }
+    this.primaryAddress = primaryAddress;
     this.additionalAddresses =
         additionalAddresses != null ? new ArrayList<>(additionalAddresses) : new ArrayList<>();
     this.commercialStatus = commercialStatus != null ? commercialStatus : CommercialStatus.ACTIVE;
@@ -38,14 +44,21 @@ public class Buyer {
   }
 
   public void addAddress(String address) {
-    if (address != null && !address.isBlank()) this.additionalAddresses.add(address);
+    if (address == null || address.isBlank()) throw new BuyerAddressRequiredException();
+    this.additionalAddresses.add(address);
   }
 
   public void suspend() {
+    if (commercialStatus == CommercialStatus.SUSPENDED) {
+      throw new BuyerAlreadySuspendedException(id);
+    }
     this.commercialStatus = CommercialStatus.SUSPENDED;
   }
 
   public void activate() {
+    if (commercialStatus == CommercialStatus.ACTIVE) {
+      throw new BuyerAlreadyActiveException(id);
+    }
     this.commercialStatus = CommercialStatus.ACTIVE;
   }
 
@@ -80,6 +93,9 @@ public class Buyer {
   }
 
   public void setPrimaryAddress(String primaryAddress) {
-    this.primaryAddress = Objects.requireNonNull(primaryAddress);
+    if (primaryAddress == null || primaryAddress.isBlank()) {
+      throw new BuyerAddressRequiredException();
+    }
+    this.primaryAddress = primaryAddress;
   }
 }

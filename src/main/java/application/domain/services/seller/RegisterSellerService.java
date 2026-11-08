@@ -1,5 +1,6 @@
 package application.domain.services.seller;
 
+import application.domain.exceptions.InvalidPasswordException;
 import application.domain.models.Seller;
 import application.domain.models.User;
 import application.domain.ports.in.RegisterSellerUseCase;
@@ -39,6 +40,7 @@ public class RegisterSellerService implements RegisterSellerUseCase {
       String taxId,
       String contactPhone) {
     emailUniquenessValidator.ensureAvailable(email);
+    if (rawPassword == null || rawPassword.isBlank()) throw new InvalidPasswordException();
     String hash = passwordEncoder.encode(rawPassword);
     User user = User.create(fullName, email, hash, User.Role.SELLER, identityDocument);
     user = userRepository.save(user);

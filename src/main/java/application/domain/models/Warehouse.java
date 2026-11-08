@@ -1,5 +1,10 @@
 package application.domain.models;
 
+import application.domain.exceptions.InvalidWarehouseAddressException;
+import application.domain.exceptions.InvalidWarehouseNameException;
+import application.domain.exceptions.SellerRequiredForWarehouseException;
+import application.domain.exceptions.WarehouseAlreadyActiveException;
+import application.domain.exceptions.WarehouseAlreadyInactiveException;
 import application.domain.exceptions.WarehouseNotActiveException;
 import java.util.Objects;
 import java.util.UUID;
@@ -33,8 +38,10 @@ public class Warehouse {
       String sellerId,
       String operatorUserId) {
     this.id = id != null ? id : UUID.randomUUID().toString();
-    this.name = Objects.requireNonNull(name);
-    this.address = Objects.requireNonNull(address);
+    if (name == null || name.isBlank()) throw new InvalidWarehouseNameException();
+    if (address == null || address.isBlank()) throw new InvalidWarehouseAddressException();
+    this.name = name;
+    this.address = address;
     this.type = Objects.requireNonNull(type);
     this.status = status != null ? status : WarehouseStatus.ACTIVE;
     this.sellerId = sellerId;
@@ -47,6 +54,9 @@ public class Warehouse {
   }
 
   public static Warehouse createForSeller(String name, String address, String sellerId) {
+    if (sellerId == null || sellerId.isBlank()) {
+      throw new SellerRequiredForWarehouseException();
+    }
     return new Warehouse(
         null, name, address, WarehouseType.SELLER, WarehouseStatus.ACTIVE, sellerId, null);
   }
@@ -56,10 +66,12 @@ public class Warehouse {
   }
 
   public void activate() {
+    if (status == WarehouseStatus.ACTIVE) throw new WarehouseAlreadyActiveException(id);
     this.status = WarehouseStatus.ACTIVE;
   }
 
   public void deactivate() {
+    if (status == WarehouseStatus.INACTIVE) throw new WarehouseAlreadyInactiveException(id);
     this.status = WarehouseStatus.INACTIVE;
   }
 
@@ -102,10 +114,12 @@ public class Warehouse {
   }
 
   public void setName(String name) {
-    this.name = Objects.requireNonNull(name);
+    if (name == null || name.isBlank()) throw new InvalidWarehouseNameException();
+    this.name = name;
   }
 
   public void setAddress(String address) {
-    this.address = Objects.requireNonNull(address);
+    if (address == null || address.isBlank()) throw new InvalidWarehouseAddressException();
+    this.address = address;
   }
 }

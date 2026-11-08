@@ -8,8 +8,10 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import application.domain.exceptions.InvalidPaymentReferenceException;
 import application.domain.exceptions.OrderAlreadyPaidException;
 import application.domain.exceptions.OrderNotFoundException;
+import application.domain.exceptions.OrderNotPendingException;
 import application.domain.exceptions.OrderOwnershipException;
 import application.domain.models.Order;
 import application.domain.models.OrderItem;
@@ -48,22 +50,22 @@ class ConfirmPaymentServiceTest {
     switch (status) {
       case CART -> {}
       case PENDING_PAYMENT -> order.submitForPayment("Calle 1");
-      case PAID -> order.confirmPayment("PAY-1");
+      case PAID -> pay();
       case PREPARING -> {
-        order.confirmPayment("PAY-1");
+        pay();
         order.markPreparing();
       }
       case DISPATCHED -> {
-        order.confirmPayment("PAY-1");
+        pay();
         order.markDispatched();
       }
       case DELIVERED -> {
-        order.confirmPayment("PAY-1");
+        pay();
         order.markDispatched();
         order.markDelivered();
       }
       case FINALIZED -> {
-        order.confirmPayment("PAY-1");
+        pay();
         order.markDispatched();
         order.markDelivered();
         order.finalizeOrder();
@@ -72,6 +74,11 @@ class ConfirmPaymentServiceTest {
     }
     when(orderRepository.findById(ORDER_ID)).thenReturn(Optional.of(order));
     lenient().when(orderRepository.save(any(Order.class))).thenAnswer(i -> i.getArgument(0));
+  }
+
+  private void pay() {
+    order.submitForPayment("Calle 1");
+    order.confirmPayment("PAY-1");
   }
 
   @Nested
@@ -110,6 +117,42 @@ class ConfirmPaymentServiceTest {
       assertThatThrownBy(() -> service.confirmPayment(ORDER_ID, "other-buyer", "PAY-123"))
           .isInstanceOf(OrderOwnershipException.class)
           .hasMessageContaining("does not belong to buyer: other-buyer");
+
+      verify(orderRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("throws when the order is still a cart")
+    void throwsWhenOrderIsStillACart() {
+      givenOrderInStatus(Order.OrderStatus.CART);
+
+      assertThatThrownBy(() -> service.confirmPayment(ORDER_ID, BUYER_ID, "PAY-123"))
+          .isInstanceOf(OrderNotPendingException.class)
+          .hasMessageContaining("is not pending payment. Status: CART");
+
+      verify(orderRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("throws when the order was cancelled")
+    void throwsWhenOrderWasCancelled() {
+      givenOrderInStatus(Order.OrderStatus.CANCELLED);
+
+      assertThatThrownBy(() -> service.confirmPayment(ORDER_ID, BUYER_ID, "PAY-123"))
+          .isInstanceOf(OrderNotPendingException.class)
+          .hasMessageContaining("is not pending payment. Status: CANCELLED");
+
+      verify(orderRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("throws when the payment reference is blank")
+    void throwsWhenPaymentReferenceIsBlank() {
+      givenOrderInStatus(Order.OrderStatus.PENDING_PAYMENT);
+
+      assertThatThrownBy(() -> service.confirmPayment(ORDER_ID, BUYER_ID, " "))
+          .isInstanceOf(InvalidPaymentReferenceException.class)
+          .hasMessage("Payment reference is required");
 
       verify(orderRepository, never()).save(any());
     }

@@ -3,8 +3,12 @@ package application.domain.models;
 import application.domain.exceptions.InvalidProductNameException;
 import application.domain.exceptions.InvalidProductPriceException;
 import application.domain.exceptions.InvalidProductTypeException;
+import application.domain.exceptions.ProductAlreadyDiscontinuedException;
+import application.domain.exceptions.ProductAlreadyPublishedException;
+import application.domain.exceptions.ProductAlreadySuspendedException;
 import application.domain.exceptions.ProductNotAvailableException;
 import application.domain.exceptions.ProductNotPhysicalException;
+import application.domain.exceptions.ProductNotPublishableException;
 import application.domain.exceptions.ProductOwnershipException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -93,14 +97,22 @@ public class Product {
   }
 
   public void publish() {
+    if (status == ProductStatus.PUBLISHED) throw new ProductAlreadyPublishedException(id);
+    if (status == ProductStatus.DISCONTINUED) {
+      throw new ProductNotPublishableException(id, status.name());
+    }
     this.status = ProductStatus.PUBLISHED;
   }
 
   public void suspend() {
+    if (status == ProductStatus.SUSPENDED) throw new ProductAlreadySuspendedException(id);
     this.status = ProductStatus.SUSPENDED;
   }
 
   public void discontinue() {
+    if (status == ProductStatus.DISCONTINUED) {
+      throw new ProductAlreadyDiscontinuedException(id);
+    }
     this.status = ProductStatus.DISCONTINUED;
   }
 
