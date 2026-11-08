@@ -7,7 +7,8 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import application.domain.exceptions.UnauthorizedOperationException;
+import application.domain.exceptions.CartNotFoundException;
+import application.domain.exceptions.EmptyCartException;
 import application.domain.models.Order;
 import application.domain.models.OrderItem;
 import application.domain.ports.out.OrderRepositoryPort;
@@ -51,8 +52,8 @@ class SubmitOrderFromCartServiceTest {
     when(orderRepository.findActiveCartByBuyerId(BUYER_ID)).thenReturn(Optional.empty());
 
     assertThatThrownBy(() -> service.submitOrder(BUYER_ID, "Calle 99"))
-        .isInstanceOf(UnauthorizedOperationException.class)
-        .hasMessage("No active cart found");
+        .isInstanceOf(CartNotFoundException.class)
+        .hasMessage("No active cart found for buyer: buyer-1");
 
     verify(orderRepository, never()).save(any());
   }
@@ -64,8 +65,8 @@ class SubmitOrderFromCartServiceTest {
     when(orderRepository.findActiveCartByBuyerId(BUYER_ID)).thenReturn(Optional.of(emptyCart));
 
     assertThatThrownBy(() -> service.submitOrder(BUYER_ID, "Calle 99"))
-        .isInstanceOf(IllegalStateException.class)
-        .hasMessage("Cart is empty");
+        .isInstanceOf(EmptyCartException.class)
+        .hasMessageContaining("Cart is empty");
 
     verify(orderRepository, never()).save(any());
   }

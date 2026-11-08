@@ -13,8 +13,8 @@ application/
 ├── domain/
 │   ├── models/          # Domain entities (User, Buyer, Seller, Product, Order, ...)
 │   ├── ports/
-│   │   ├── in/          # Use-case interfaces (driven ports)
-│   │   └── out/         # Repository interfaces (driving ports)
+│   │   ├── in/          # Input ports: use-case interfaces (driving)
+│   │   └── out/         # Output ports: repository interfaces (driven)
 │   ├── services/        # Use-case implementations
 │   └── exceptions/
 ├── adapters/
@@ -24,6 +24,19 @@ application/
 └── infrastructure/
     └── seed/            # Database seeder
 ```
+
+## Software Design Document (SDD)
+
+The complete design documentation lives in the [`SDD/`](SDD/) folder:
+
+| Document | Content |
+|----------|---------|
+| [00 - Introduction](SDD/00-Introduccion.md) | Purpose, scope and glossary |
+| [01 - Requirements](SDD/01-Requisitos.md) | Functional and non-functional requirements |
+| [02 - Architecture](SDD/02-Arquitectura.md) | Hexagonal architecture and Mermaid component diagram |
+| [03 - Domain](SDD/03-Dominio.md) | Entities, invariants, state machines and exceptions |
+| [04 - API](SDD/04-API.md) | Endpoints, roles, examples and error contract |
+| [05 - SOLID](SDD/05-SOLID.md) | SRP, OCP, LSP, ISP and DIP with real code |
 
 ## Domains covered
 
@@ -36,7 +49,7 @@ application/
 | Product catalog (Physical / Digital) | ✅ |
 | Distributed inventory (no negative stock) | ✅ |
 | Shopping cart | ✅ |
-| Order lifecycle (CART → PENDING_PAYMENT → PAID → DISPATCHED → DELIVERED → FINALIZED) | ✅ |
+| Order lifecycle (CART → PENDING_PAYMENT → PAID → PREPARING → DISPATCHED → DELIVERED → FINALIZED, plus CANCELLED) | ✅ |
 | Logistics operations | ✅ |
 
 ## Quick start
@@ -141,8 +154,9 @@ cp .env.example .env
 - `POST /api/buyer/cart/items` – Add item to cart
 - `DELETE /api/buyer/cart` – Clear cart
 - `POST /api/buyer/cart/submit` – Submit order
-- `POST /api/buyer/orders/{id}/pay` – Confirm payment
-- `GET  /api/buyer/orders` – My orders
+- `POST /api/buyer/orders/{id}/pay` — Confirm payment
+- `POST /api/buyer/orders/{id}/cancel` — Cancel an order
+- `GET  /api/buyer/orders` — My orders
 
 ### Logistics (`ROLE_LOGISTICS_OPERATOR`)
 - `POST /api/logistics/orders/{id}/prepare`

@@ -16,7 +16,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import application.adapters.rest.GlobalExceptionHandler;
 import application.adapters.security.JwtProvider;
 import application.adapters.security.SecurityConfig;
-import application.domain.exceptions.UnauthorizedOperationException;
+import application.domain.exceptions.ProductNotFoundException;
+import application.domain.exceptions.ProductOwnershipException;
 import application.domain.models.InventoryItem;
 import application.domain.models.Product;
 import application.domain.models.Seller;
@@ -135,8 +136,8 @@ class SellerControllerTest {
   }
 
   @Test
-  @DisplayName("POST /api/seller/products returns 500 when the seller profile is missing")
-  void createProductReturns500WhenProfileMissing() throws Exception {
+  @DisplayName("POST /api/seller/products returns 404 when the seller profile is missing")
+  void createProductReturns404WhenProfileMissing() throws Exception {
     when(sellerRepository.findByUserId(USER_ID)).thenReturn(Optional.empty());
 
     mockMvc
@@ -148,8 +149,8 @@ class SellerControllerTest {
                         """
                         {"name":"Laptop","type":"PHYSICAL","price":100.00}
                         """)))
-        .andExpect(status().isInternalServerError())
-        .andExpect(jsonPath("$.error").value("Seller profile not found"));
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.error").value("Seller not found: user-1"));
   }
 
   @Test
@@ -167,16 +168,16 @@ class SellerControllerTest {
   }
 
   @Test
-  @DisplayName("POST /api/seller/products/{id}/publish returns 400 when the product is not found")
-  void publishReturns400WhenProductNotFound() throws Exception {
+  @DisplayName("POST /api/seller/products/{id}/publish returns 404 when the product is not found")
+  void publishReturns404WhenProductNotFound() throws Exception {
     givenSellerProfile();
     when(publishProductUseCase.execute(anyString(), anyString()))
-        .thenThrow(new UnauthorizedOperationException("Product not found"));
+        .thenThrow(new ProductNotFoundException("product-1"));
 
     mockMvc
         .perform(asSeller(post("/api/seller/products/product-1/publish")))
-        .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.error").value("Product not found"));
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.error").value("Product not found: product-1"));
   }
 
   @Test
@@ -219,11 +220,11 @@ class SellerControllerTest {
   }
 
   @Test
-  @DisplayName("POST /api/seller/inventory returns 400 when the product is not owned by the seller")
-  void addInventoryReturns400WhenNotOwner() throws Exception {
+  @DisplayName("POST /api/seller/inventory returns 403 when the product is not owned by the seller")
+  void addInventoryReturns403WhenNotOwner() throws Exception {
     givenSellerProfile();
     when(addInventoryUseCase.execute(anyString(), anyString(), anyInt(), anyString()))
-        .thenThrow(new UnauthorizedOperationException("Product does not belong to this seller"));
+        .thenThrow(new ProductOwnershipException("product-1", SELLER_ID));
 
     mockMvc
         .perform(
@@ -234,8 +235,9 @@ class SellerControllerTest {
                         """
                         {"productId":"product-1","warehouseId":"wh-1","quantity":5}
                         """)))
-        .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.error").value("Product does not belong to this seller"));
+        .andExpect(status().isForbidden())
+        .andExpect(
+            jsonPath("$.error").value("Product product-1 does not belong to seller: " + SELLER_ID));
   }
 
   @Test

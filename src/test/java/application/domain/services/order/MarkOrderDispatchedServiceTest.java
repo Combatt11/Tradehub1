@@ -7,6 +7,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import application.domain.exceptions.OrderNotDispatchableException;
 import application.domain.models.Order;
 import application.domain.models.OrderItem;
 import application.domain.ports.out.OrderRepositoryPort;
@@ -76,8 +77,8 @@ class MarkOrderDispatchedServiceTest {
     when(orderRepository.findById(ORDER_ID)).thenReturn(Optional.of(cart));
 
     assertThatThrownBy(() -> service.markDispatched(ORDER_ID))
-        .isInstanceOf(IllegalStateException.class)
-        .hasMessage("Only PREPARING/PAID orders can be dispatched");
+        .isInstanceOf(OrderNotDispatchableException.class)
+        .hasMessageContaining("Only PREPARING/PAID orders can be dispatched");
 
     verify(orderRepository, never()).save(any());
   }

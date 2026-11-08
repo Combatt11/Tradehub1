@@ -1,9 +1,11 @@
 package application.adapters.rest.controllers;
 
 import application.adapters.rest.dto.AddToCartRequest;
+import application.domain.exceptions.BuyerNotFoundException;
 import application.domain.models.Buyer;
 import application.domain.models.Order;
 import application.domain.ports.in.AddItemToCartUseCase;
+import application.domain.ports.in.CancelOrderUseCase;
 import application.domain.ports.in.ClearCartUseCase;
 import application.domain.ports.in.ConfirmPaymentUseCase;
 import application.domain.ports.in.GetBuyerOrdersUseCase;
@@ -27,6 +29,7 @@ public class BuyerController {
   private final ClearCartUseCase clearCartUseCase;
   private final SubmitOrderFromCartUseCase submitOrderFromCartUseCase;
   private final ConfirmPaymentUseCase confirmPaymentUseCase;
+  private final CancelOrderUseCase cancelOrderUseCase;
   private final GetBuyerOrdersUseCase getBuyerOrdersUseCase;
   private final BuyerRepositoryPort buyerRepository;
 
@@ -36,6 +39,7 @@ public class BuyerController {
       ClearCartUseCase clearCartUseCase,
       SubmitOrderFromCartUseCase submitOrderFromCartUseCase,
       ConfirmPaymentUseCase confirmPaymentUseCase,
+      CancelOrderUseCase cancelOrderUseCase,
       GetBuyerOrdersUseCase getBuyerOrdersUseCase,
       BuyerRepositoryPort buyerRepository) {
     this.getCartUseCase = getCartUseCase;
@@ -43,6 +47,7 @@ public class BuyerController {
     this.clearCartUseCase = clearCartUseCase;
     this.submitOrderFromCartUseCase = submitOrderFromCartUseCase;
     this.confirmPaymentUseCase = confirmPaymentUseCase;
+    this.cancelOrderUseCase = cancelOrderUseCase;
     this.getBuyerOrdersUseCase = getBuyerOrdersUseCase;
     this.buyerRepository = buyerRepository;
   }
@@ -52,7 +57,7 @@ public class BuyerController {
     return buyerRepository
         .findByUserId(userId)
         .map(Buyer::getId)
-        .orElseThrow(() -> new RuntimeException("Buyer profile not found"));
+        .orElseThrow(() -> new BuyerNotFoundException(userId));
   }
 
   @GetMapping("/cart")
@@ -92,6 +97,13 @@ public class BuyerController {
     String buyerId = resolveBuyerId(auth);
     Order order =
         confirmPaymentUseCase.confirmPayment(orderId, buyerId, body.get("paymentReference"));
+    return ResponseEntity.ok(toOrderMap(order));
+  }
+
+  @PostMapping("/orders/{orderId}/cancel")
+  public ResponseEntity<?> cancelOrder(@PathVariable String orderId, Authentication auth) {
+    String buyerId = resolveBuyerId(auth);
+    Order order = cancelOrderUseCase.cancelOrder(orderId, buyerId);
     return ResponseEntity.ok(toOrderMap(order));
   }
 

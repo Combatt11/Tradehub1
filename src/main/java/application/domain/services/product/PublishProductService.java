@@ -1,6 +1,6 @@
 package application.domain.services.product;
 
-import application.domain.exceptions.UnauthorizedOperationException;
+import application.domain.exceptions.ProductNotFoundException;
 import application.domain.models.Product;
 import application.domain.ports.in.PublishProductUseCase;
 import application.domain.ports.out.ProductRepositoryPort;
@@ -21,9 +21,8 @@ public class PublishProductService implements PublishProductUseCase {
     Product product =
         productRepository
             .findById(productId)
-            .orElseThrow(() -> new UnauthorizedOperationException("Product not found"));
-    if (!product.getSellerId().equals(sellerId))
-      throw new UnauthorizedOperationException("Product does not belong to this seller");
+            .orElseThrow(() -> new ProductNotFoundException(productId));
+    product.ensureOwnedBy(sellerId);
     product.publish();
     return productRepository.save(product);
   }

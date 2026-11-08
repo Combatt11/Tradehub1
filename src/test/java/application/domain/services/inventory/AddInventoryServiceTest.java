@@ -8,7 +8,11 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import application.domain.exceptions.UnauthorizedOperationException;
+import application.domain.exceptions.ProductNotFoundException;
+import application.domain.exceptions.ProductNotPhysicalException;
+import application.domain.exceptions.ProductOwnershipException;
+import application.domain.exceptions.WarehouseNotActiveException;
+import application.domain.exceptions.WarehouseNotFoundException;
 import application.domain.models.InventoryItem;
 import application.domain.models.Product;
 import application.domain.models.Warehouse;
@@ -127,8 +131,8 @@ class AddInventoryServiceTest {
       when(productRepository.findById(PRODUCT_ID)).thenReturn(Optional.empty());
 
       assertThatThrownBy(() -> service.execute(PRODUCT_ID, WAREHOUSE_ID, 1, SELLER_ID))
-          .isInstanceOf(UnauthorizedOperationException.class)
-          .hasMessage("Product not found");
+          .isInstanceOf(ProductNotFoundException.class)
+          .hasMessage("Product not found: product-1");
 
       verifyNoInteractions(inventoryRepository, warehouseRepository);
     }
@@ -140,8 +144,8 @@ class AddInventoryServiceTest {
           .thenReturn(Optional.of(physicalProduct("other-seller")));
 
       assertThatThrownBy(() -> service.execute(PRODUCT_ID, WAREHOUSE_ID, 1, SELLER_ID))
-          .isInstanceOf(UnauthorizedOperationException.class)
-          .hasMessage("Product does not belong to this seller");
+          .isInstanceOf(ProductOwnershipException.class)
+          .hasMessage("Product product-1 does not belong to seller: seller-1");
 
       verifyNoInteractions(inventoryRepository, warehouseRepository);
     }
@@ -153,8 +157,8 @@ class AddInventoryServiceTest {
           .thenReturn(Optional.of(digitalProduct(SELLER_ID)));
 
       assertThatThrownBy(() -> service.execute(PRODUCT_ID, WAREHOUSE_ID, 1, SELLER_ID))
-          .isInstanceOf(UnauthorizedOperationException.class)
-          .hasMessage("Digital products do not require inventory");
+          .isInstanceOf(ProductNotPhysicalException.class)
+          .hasMessage("Digital products do not require inventory: product-1");
 
       verifyNoInteractions(inventoryRepository, warehouseRepository);
     }
@@ -167,8 +171,8 @@ class AddInventoryServiceTest {
       when(warehouseRepository.findById(WAREHOUSE_ID)).thenReturn(Optional.empty());
 
       assertThatThrownBy(() -> service.execute(PRODUCT_ID, WAREHOUSE_ID, 1, SELLER_ID))
-          .isInstanceOf(UnauthorizedOperationException.class)
-          .hasMessage("Warehouse not found");
+          .isInstanceOf(WarehouseNotFoundException.class)
+          .hasMessage("Warehouse not found: warehouse-1");
 
       verifyNoInteractions(inventoryRepository);
     }
@@ -183,8 +187,8 @@ class AddInventoryServiceTest {
       when(warehouseRepository.findById(WAREHOUSE_ID)).thenReturn(Optional.of(inactive));
 
       assertThatThrownBy(() -> service.execute(PRODUCT_ID, WAREHOUSE_ID, 1, SELLER_ID))
-          .isInstanceOf(UnauthorizedOperationException.class)
-          .hasMessage("Warehouse is not active");
+          .isInstanceOf(WarehouseNotActiveException.class)
+          .hasMessageContaining("is not active. Status: INACTIVE");
 
       verify(inventoryRepository, never()).save(any());
     }

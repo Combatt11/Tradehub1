@@ -1,5 +1,7 @@
 package application.domain.models;
 
+import application.domain.exceptions.InsufficientStockException;
+import application.domain.exceptions.InvalidQuantityException;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -39,15 +41,14 @@ public class InventoryItem {
   }
 
   public void addStock(int amount) {
-    if (amount < 0) throw new IllegalArgumentException("Cannot add negative stock");
+    if (amount < 0) throw new InvalidQuantityException("Cannot add negative stock");
     this.quantityAvailable += amount;
   }
 
   public void reserve(int amount) {
-    if (amount <= 0) throw new IllegalArgumentException("Amount must be positive");
+    if (amount <= 0) throw new InvalidQuantityException("Reservation amount must be positive");
     if (quantityAvailable < amount) {
-      throw new IllegalStateException(
-          "Insufficient available stock. Available: " + quantityAvailable);
+      throw new InsufficientStockException(productId, amount, quantityAvailable);
     }
     this.quantityAvailable -= amount;
     this.quantityReserved += amount;
@@ -69,7 +70,7 @@ public class InventoryItem {
   public void markDamaged(int amount) {
     if (amount <= 0) return;
     if (quantityAvailable < amount) {
-      throw new IllegalStateException("Not enough available stock to mark as damaged");
+      throw new InsufficientStockException(productId, amount, quantityAvailable);
     }
     this.quantityAvailable -= amount;
     this.quantityDamaged += amount;

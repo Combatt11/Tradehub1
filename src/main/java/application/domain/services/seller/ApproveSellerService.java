@@ -1,6 +1,6 @@
 package application.domain.services.seller;
 
-import application.domain.exceptions.UnauthorizedOperationException;
+import application.domain.exceptions.SellerNotFoundException;
 import application.domain.models.Seller;
 import application.domain.ports.in.ApproveSellerUseCase;
 import application.domain.ports.out.SellerRepositoryPort;
@@ -22,7 +22,7 @@ public class ApproveSellerService implements ApproveSellerUseCase {
     Seller seller =
         sellerRepository
             .findById(sellerId)
-            .orElseThrow(() -> new UnauthorizedOperationException("Seller not found"));
+            .orElseThrow(() -> new SellerNotFoundException(sellerId));
     seller.approve();
     return sellerRepository.save(seller);
   }

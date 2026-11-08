@@ -1,5 +1,6 @@
 package application.domain.models;
 
+import application.domain.exceptions.WarehouseNotActiveException;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -64,6 +65,12 @@ public class Warehouse {
 
   public boolean isActive() {
     return WarehouseStatus.ACTIVE.equals(this.status);
+  }
+
+  public void ensureActive() {
+    if (!isActive()) {
+      throw new WarehouseNotActiveException(id, status.name());
+    }
   }
 
   public String getId() {

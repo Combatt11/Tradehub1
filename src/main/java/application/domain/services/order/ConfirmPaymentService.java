@@ -1,6 +1,6 @@
 package application.domain.services.order;
 
-import application.domain.exceptions.UnauthorizedOperationException;
+import application.domain.exceptions.OrderNotFoundException;
 import application.domain.models.Order;
 import application.domain.ports.in.ConfirmPaymentUseCase;
 import application.domain.ports.out.OrderRepositoryPort;
@@ -20,11 +20,8 @@ public class ConfirmPaymentService implements ConfirmPaymentUseCase {
   @Transactional
   public Order confirmPayment(String orderId, String buyerId, String paymentReference) {
     Order order =
-        orderRepository
-            .findById(orderId)
-            .orElseThrow(() -> new UnauthorizedOperationException("Order not found"));
-    if (!order.getBuyerId().equals(buyerId))
-      throw new UnauthorizedOperationException("Order does not belong to this buyer");
+        orderRepository.findById(orderId).orElseThrow(() -> new OrderNotFoundException(orderId));
+    order.ensureOwnedBy(buyerId);
     order.confirmPayment(paymentReference);
     return orderRepository.save(order);
   }

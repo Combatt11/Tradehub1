@@ -1,8 +1,15 @@
 package application.domain.models;
 
+import application.domain.exceptions.InvalidProductNameException;
+import application.domain.exceptions.InvalidProductPriceException;
+import application.domain.exceptions.InvalidProductTypeException;
+import application.domain.exceptions.ProductNotAvailableException;
+import application.domain.exceptions.ProductNotPhysicalException;
+import application.domain.exceptions.ProductOwnershipException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -41,13 +48,29 @@ public class Product {
       String sku) {
     this.id = id != null ? id : UUID.randomUUID().toString();
     this.sellerId = Objects.requireNonNull(sellerId);
-    this.name = Objects.requireNonNull(name);
+    if (name == null || name.isBlank()) throw new InvalidProductNameException();
+    if (price == null || price.signum() <= 0) {
+      throw new InvalidProductPriceException(String.valueOf(price));
+    }
+    if (type == null) throw new InvalidProductTypeException(null);
+    this.name = name;
     this.description = description;
-    this.type = Objects.requireNonNull(type);
-    this.price = Objects.requireNonNull(price);
+    this.type = type;
+    this.price = price;
     this.status = status != null ? status : ProductStatus.DRAFT;
     this.variants = variants != null ? new ArrayList<>(variants) : new ArrayList<>();
     this.sku = sku;
+  }
+
+  public static ProductType parseType(String rawType) {
+    if (rawType == null || rawType.isBlank()) {
+      throw new InvalidProductTypeException(rawType);
+    }
+    try {
+      return ProductType.valueOf(rawType.trim().toUpperCase(Locale.ROOT));
+    } catch (IllegalArgumentException ex) {
+      throw new InvalidProductTypeException(rawType);
+    }
   }
 
   public static Product create(
@@ -89,6 +112,24 @@ public class Product {
     return ProductType.PHYSICAL.equals(this.type);
   }
 
+  public void ensureAvailableForSale() {
+    if (!isAvailableForSale()) {
+      throw new ProductNotAvailableException(id, status.name());
+    }
+  }
+
+  public void ensurePhysical() {
+    if (!isPhysical()) {
+      throw new ProductNotPhysicalException(id);
+    }
+  }
+
+  public void ensureOwnedBy(String sellerId) {
+    if (!this.sellerId.equals(sellerId)) {
+      throw new ProductOwnershipException(id, sellerId);
+    }
+  }
+
   public String getId() {
     return id;
   }
@@ -126,7 +167,8 @@ public class Product {
   }
 
   public void setName(String name) {
-    this.name = Objects.requireNonNull(name);
+    if (name == null || name.isBlank()) throw new InvalidProductNameException();
+    this.name = name;
   }
 
   public void setDescription(String description) {
@@ -134,7 +176,10 @@ public class Product {
   }
 
   public void setPrice(BigDecimal price) {
-    this.price = Objects.requireNonNull(price);
+    if (price == null || price.signum() <= 0) {
+      throw new InvalidProductPriceException(String.valueOf(price));
+    }
+    this.price = price;
   }
 
   public void addVariant(String variant) {

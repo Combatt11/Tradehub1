@@ -8,7 +8,9 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import application.domain.exceptions.UnauthorizedOperationException;
+import application.domain.exceptions.OrderAlreadyPaidException;
+import application.domain.exceptions.OrderNotFoundException;
+import application.domain.exceptions.OrderOwnershipException;
 import application.domain.models.Order;
 import application.domain.models.OrderItem;
 import application.domain.ports.out.OrderRepositoryPort;
@@ -94,8 +96,8 @@ class ConfirmPaymentServiceTest {
       when(orderRepository.findById(ORDER_ID)).thenReturn(Optional.empty());
 
       assertThatThrownBy(() -> service.confirmPayment(ORDER_ID, BUYER_ID, "PAY-123"))
-          .isInstanceOf(UnauthorizedOperationException.class)
-          .hasMessage("Order not found");
+          .isInstanceOf(OrderNotFoundException.class)
+          .hasMessage("Order not found: order-1");
 
       verify(orderRepository, never()).save(any());
     }
@@ -106,8 +108,8 @@ class ConfirmPaymentServiceTest {
       givenOrderInStatus(Order.OrderStatus.PENDING_PAYMENT);
 
       assertThatThrownBy(() -> service.confirmPayment(ORDER_ID, "other-buyer", "PAY-123"))
-          .isInstanceOf(UnauthorizedOperationException.class)
-          .hasMessage("Order does not belong to this buyer");
+          .isInstanceOf(OrderOwnershipException.class)
+          .hasMessageContaining("does not belong to buyer: other-buyer");
 
       verify(orderRepository, never()).save(any());
     }
@@ -118,8 +120,8 @@ class ConfirmPaymentServiceTest {
       givenOrderInStatus(Order.OrderStatus.FINALIZED);
 
       assertThatThrownBy(() -> service.confirmPayment(ORDER_ID, BUYER_ID, "PAY-123"))
-          .isInstanceOf(IllegalStateException.class)
-          .hasMessageContaining("cannot accept payment");
+          .isInstanceOf(OrderAlreadyPaidException.class)
+          .hasMessageContaining("has already been paid");
 
       verify(orderRepository, never()).save(any());
     }

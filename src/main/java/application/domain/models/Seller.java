@@ -1,5 +1,6 @@
 package application.domain.models;
 
+import application.domain.exceptions.SellerNotApprovedException;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -48,6 +49,12 @@ public class Seller {
 
   public boolean isActive() {
     return SellerStatus.ACTIVE.equals(this.status);
+  }
+
+  public void ensureActive() {
+    if (!isActive()) {
+      throw new SellerNotApprovedException(id, status.name());
+    }
   }
 
   public String getId() {

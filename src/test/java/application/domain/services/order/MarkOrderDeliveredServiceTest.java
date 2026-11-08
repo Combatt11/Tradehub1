@@ -7,6 +7,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import application.domain.exceptions.OrderNotDeliverableException;
 import application.domain.models.Order;
 import application.domain.models.OrderItem;
 import application.domain.ports.out.OrderRepositoryPort;
@@ -58,8 +59,8 @@ class MarkOrderDeliveredServiceTest {
     when(orderRepository.findById(ORDER_ID)).thenReturn(Optional.of(order));
 
     assertThatThrownBy(() -> service.markDelivered(ORDER_ID))
-        .isInstanceOf(IllegalStateException.class)
-        .hasMessage("Only DISPATCHED orders can be marked delivered");
+        .isInstanceOf(OrderNotDeliverableException.class)
+        .hasMessageContaining("Only DISPATCHED orders can be marked delivered");
 
     verify(orderRepository, never()).save(any());
   }
