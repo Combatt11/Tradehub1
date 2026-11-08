@@ -139,6 +139,7 @@ cp .env.example .env
 ### Buyer (`ROLE_BUYER`)
 - `GET  /api/buyer/cart` – Get/create cart
 - `POST /api/buyer/cart/items` – Add item to cart
+- `DELETE /api/buyer/cart` – Clear cart
 - `POST /api/buyer/cart/submit` – Submit order
 - `POST /api/buyer/orders/{id}/pay` – Confirm payment
 - `GET  /api/buyer/orders` – My orders

@@ -2,38 +2,42 @@ package application.domain.services.order;
 
 import application.domain.exceptions.InsufficientStockException;
 import application.domain.exceptions.UnauthorizedOperationException;
-import application.domain.models.*;
-import application.domain.ports.out.*;
+import application.domain.models.Buyer;
+import application.domain.models.InventoryItem;
+import application.domain.models.Order;
+import application.domain.models.OrderItem;
+import application.domain.models.Product;
+import application.domain.ports.out.BuyerRepositoryPort;
+import application.domain.ports.out.InventoryRepositoryPort;
+import application.domain.ports.out.OrderRepositoryPort;
+import application.domain.ports.out.ProductRepositoryPort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-public class CartService {
+public class AddItemToCartService {
+
   private final OrderRepositoryPort orderRepository;
   private final ProductRepositoryPort productRepository;
   private final InventoryRepositoryPort inventoryRepository;
   private final BuyerRepositoryPort buyerRepository;
+  private final GetCartService getCartService;
 
-  public CartService(
+  public AddItemToCartService(
       OrderRepositoryPort orderRepository,
       ProductRepositoryPort productRepository,
       InventoryRepositoryPort inventoryRepository,
-      BuyerRepositoryPort buyerRepository) {
+      BuyerRepositoryPort buyerRepository,
+      GetCartService getCartService) {
     this.orderRepository = orderRepository;
     this.productRepository = productRepository;
     this.inventoryRepository = inventoryRepository;
     this.buyerRepository = buyerRepository;
+    this.getCartService = getCartService;
   }
 
   @Transactional
-  public Order getOrCreateCart(String buyerId) {
-    return orderRepository
-        .findActiveCartByBuyerId(buyerId)
-        .orElseGet(() -> orderRepository.save(Order.createCart(buyerId)));
-  }
-
-  @Transactional
-  public Order addToCart(String buyerId, String productId, int quantity, String warehouseId) {
+  public Order addItem(String buyerId, String productId, int quantity, String warehouseId) {
     Buyer buyer =
         buyerRepository
             .findById(buyerId)
@@ -58,19 +62,9 @@ public class CartService {
       inventoryRepository.save(inventory);
     }
 
-    Order cart = getOrCreateCart(buyerId);
+    Order cart = getCartService.getOrCreateCart(buyerId);
     cart.addItem(
         new OrderItem(productId, product.getName(), quantity, product.getPrice(), warehouseId));
-    return orderRepository.save(cart);
-  }
-
-  @Transactional
-  public Order submitOrder(String buyerId, String shippingAddress) {
-    Order cart =
-        orderRepository
-            .findActiveCartByBuyerId(buyerId)
-            .orElseThrow(() -> new UnauthorizedOperationException("No active cart found"));
-    cart.submitForPayment(shippingAddress);
     return orderRepository.save(cart);
   }
 }
