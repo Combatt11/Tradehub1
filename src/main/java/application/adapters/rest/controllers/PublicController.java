@@ -5,8 +5,8 @@ import application.adapters.rest.dto.LoginResponse;
 import application.adapters.rest.dto.RegisterBuyerRequest;
 import application.adapters.security.JwtProvider;
 import application.domain.models.User;
-import application.domain.services.user.LoginService;
-import application.domain.services.user.RegisterBuyerService;
+import application.domain.ports.in.LoginUseCase;
+import application.domain.ports.in.RegisterBuyerUseCase;
 import jakarta.validation.Valid;
 import java.util.Map;
 import org.springframework.http.HttpStatus;
@@ -17,23 +17,23 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/public")
 public class PublicController {
 
-  private final RegisterBuyerService registerBuyerService;
-  private final LoginService loginService;
+  private final RegisterBuyerUseCase registerBuyerUseCase;
+  private final LoginUseCase loginUseCase;
   private final JwtProvider jwtProvider;
 
   public PublicController(
-      RegisterBuyerService registerBuyerService,
-      LoginService loginService,
+      RegisterBuyerUseCase registerBuyerUseCase,
+      LoginUseCase loginUseCase,
       JwtProvider jwtProvider) {
-    this.registerBuyerService = registerBuyerService;
-    this.loginService = loginService;
+    this.registerBuyerUseCase = registerBuyerUseCase;
+    this.loginUseCase = loginUseCase;
     this.jwtProvider = jwtProvider;
   }
 
   @PostMapping("/register/buyer")
   public ResponseEntity<?> registerBuyer(@Valid @RequestBody RegisterBuyerRequest req) {
     User user =
-        registerBuyerService.execute(
+        registerBuyerUseCase.execute(
             req.getFullName(),
             req.getEmail(),
             req.getPassword(),
@@ -50,7 +50,7 @@ public class PublicController {
 
   @PostMapping("/login")
   public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest req) {
-    User user = loginService.authenticate(req.getEmail(), req.getPassword());
+    User user = loginUseCase.authenticate(req.getEmail(), req.getPassword());
     String token = jwtProvider.generateToken(user.getId(), user.getEmail(), user.getRole().name());
     return ResponseEntity.ok(
         new LoginResponse(

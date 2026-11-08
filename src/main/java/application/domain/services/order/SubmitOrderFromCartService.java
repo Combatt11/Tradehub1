@@ -2,12 +2,13 @@ package application.domain.services.order;
 
 import application.domain.exceptions.UnauthorizedOperationException;
 import application.domain.models.Order;
+import application.domain.ports.in.SubmitOrderFromCartUseCase;
 import application.domain.ports.out.OrderRepositoryPort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-public class SubmitOrderFromCartService {
+public class SubmitOrderFromCartService implements SubmitOrderFromCartUseCase {
 
   private final OrderRepositoryPort orderRepository;
 
@@ -15,6 +16,7 @@ public class SubmitOrderFromCartService {
     this.orderRepository = orderRepository;
   }
 
+  @Override
   @Transactional
   public Order submitOrder(String buyerId, String shippingAddress) {
     Order cart =

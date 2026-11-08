@@ -3,9 +3,10 @@ package application.adapters.rest.controllers;
 import application.adapters.rest.dto.RegisterSellerRequest;
 import application.domain.models.Seller;
 import application.domain.models.Warehouse;
-import application.domain.ports.out.SellerRepositoryPort;
-import application.domain.ports.out.WarehouseRepositoryPort;
-import application.domain.services.seller.RegisterSellerService;
+import application.domain.ports.in.ApproveSellerUseCase;
+import application.domain.ports.in.RegisterMarketplaceWarehouseUseCase;
+import application.domain.ports.in.RegisterSellerUseCase;
+import application.domain.ports.in.RegisterSellerWarehouseUseCase;
 import jakarta.validation.Valid;
 import java.util.Map;
 import org.springframework.http.HttpStatus;
@@ -16,23 +17,26 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/admin")
 public class AdminController {
 
-  private final RegisterSellerService registerSellerService;
-  private final SellerRepositoryPort sellerRepository;
-  private final WarehouseRepositoryPort warehouseRepository;
+  private final RegisterSellerUseCase registerSellerUseCase;
+  private final ApproveSellerUseCase approveSellerUseCase;
+  private final RegisterMarketplaceWarehouseUseCase registerMarketplaceWarehouseUseCase;
+  private final RegisterSellerWarehouseUseCase registerSellerWarehouseUseCase;
 
   public AdminController(
-      RegisterSellerService registerSellerService,
-      SellerRepositoryPort sellerRepository,
-      WarehouseRepositoryPort warehouseRepository) {
-    this.registerSellerService = registerSellerService;
-    this.sellerRepository = sellerRepository;
-    this.warehouseRepository = warehouseRepository;
+      RegisterSellerUseCase registerSellerUseCase,
+      ApproveSellerUseCase approveSellerUseCase,
+      RegisterMarketplaceWarehouseUseCase registerMarketplaceWarehouseUseCase,
+      RegisterSellerWarehouseUseCase registerSellerWarehouseUseCase) {
+    this.registerSellerUseCase = registerSellerUseCase;
+    this.approveSellerUseCase = approveSellerUseCase;
+    this.registerMarketplaceWarehouseUseCase = registerMarketplaceWarehouseUseCase;
+    this.registerSellerWarehouseUseCase = registerSellerWarehouseUseCase;
   }
 
   @PostMapping("/sellers")
   public ResponseEntity<?> registerSeller(@Valid @RequestBody RegisterSellerRequest req) {
     Seller seller =
-        registerSellerService.execute(
+        registerSellerUseCase.execute(
             req.getFullName(),
             req.getEmail(),
             req.getPassword(),
@@ -51,19 +55,15 @@ public class AdminController {
 
   @PostMapping("/sellers/{sellerId}/approve")
   public ResponseEntity<?> approveSeller(@PathVariable String sellerId) {
-    Seller seller =
-        sellerRepository
-            .findById(sellerId)
-            .orElseThrow(() -> new RuntimeException("Seller not found"));
-    seller.approve();
-    sellerRepository.save(seller);
+    Seller seller = approveSellerUseCase.approveSeller(sellerId);
     return ResponseEntity.ok(Map.of("id", seller.getId(), "status", seller.getStatus().name()));
   }
 
   @PostMapping("/warehouses/marketplace")
   public ResponseEntity<?> createMarketplaceWarehouse(@RequestBody Map<String, String> body) {
-    Warehouse wh = Warehouse.createMarketplace(body.get("name"), body.get("address"));
-    wh = warehouseRepository.save(wh);
+    Warehouse wh =
+        registerMarketplaceWarehouseUseCase.registerMarketplaceWarehouse(
+            body.get("name"), body.get("address"));
     return ResponseEntity.status(HttpStatus.CREATED)
         .body(Map.of("id", wh.getId(), "name", wh.getName(), "type", wh.getType().name()));
   }
@@ -71,8 +71,8 @@ public class AdminController {
   @PostMapping("/warehouses/seller")
   public ResponseEntity<?> createSellerWarehouse(@RequestBody Map<String, String> body) {
     Warehouse wh =
-        Warehouse.createForSeller(body.get("name"), body.get("address"), body.get("sellerId"));
-    wh = warehouseRepository.save(wh);
+        registerSellerWarehouseUseCase.registerSellerWarehouse(
+            body.get("name"), body.get("address"), body.get("sellerId"));
     return ResponseEntity.status(HttpStatus.CREATED)
         .body(Map.of("id", wh.getId(), "name", wh.getName(), "sellerId", wh.getSellerId()));
   }

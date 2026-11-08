@@ -3,6 +3,7 @@ package application.domain.services.product;
 import application.domain.exceptions.UnauthorizedOperationException;
 import application.domain.models.Product;
 import application.domain.models.Seller;
+import application.domain.ports.in.CreateProductUseCase;
 import application.domain.ports.out.ProductRepositoryPort;
 import application.domain.ports.out.SellerRepositoryPort;
 import java.math.BigDecimal;
@@ -10,7 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-public class CreateProductService {
+public class CreateProductService implements CreateProductUseCase {
   private final ProductRepositoryPort productRepository;
   private final SellerRepositoryPort sellerRepository;
 
@@ -20,6 +21,7 @@ public class CreateProductService {
     this.sellerRepository = sellerRepository;
   }
 
+  @Override
   @Transactional
   public Product execute(
       String sellerId,

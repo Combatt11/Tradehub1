@@ -5,10 +5,11 @@ import application.adapters.rest.dto.CreateProductRequest;
 import application.domain.models.InventoryItem;
 import application.domain.models.Product;
 import application.domain.models.Seller;
+import application.domain.ports.in.AddInventoryUseCase;
+import application.domain.ports.in.CreateProductUseCase;
+import application.domain.ports.in.GetSellerProductsUseCase;
+import application.domain.ports.in.PublishProductUseCase;
 import application.domain.ports.out.SellerRepositoryPort;
-import application.domain.services.inventory.AddInventoryService;
-import application.domain.services.product.CreateProductService;
-import application.domain.services.product.PublishProductService;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Map;
@@ -22,23 +23,23 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/seller")
 public class SellerController {
 
-  private final CreateProductService createProductService;
-  private final PublishProductService publishProductService;
-  private final AddInventoryService addInventoryService;
+  private final CreateProductUseCase createProductUseCase;
+  private final PublishProductUseCase publishProductUseCase;
+  private final AddInventoryUseCase addInventoryUseCase;
+  private final GetSellerProductsUseCase getSellerProductsUseCase;
   private final SellerRepositoryPort sellerRepository;
-  private final application.domain.ports.out.ProductRepositoryPort productRepository;
 
   public SellerController(
-      CreateProductService createProductService,
-      PublishProductService publishProductService,
-      AddInventoryService addInventoryService,
-      SellerRepositoryPort sellerRepository,
-      application.domain.ports.out.ProductRepositoryPort productRepository) {
-    this.createProductService = createProductService;
-    this.publishProductService = publishProductService;
-    this.addInventoryService = addInventoryService;
+      CreateProductUseCase createProductUseCase,
+      PublishProductUseCase publishProductUseCase,
+      AddInventoryUseCase addInventoryUseCase,
+      GetSellerProductsUseCase getSellerProductsUseCase,
+      SellerRepositoryPort sellerRepository) {
+    this.createProductUseCase = createProductUseCase;
+    this.publishProductUseCase = publishProductUseCase;
+    this.addInventoryUseCase = addInventoryUseCase;
+    this.getSellerProductsUseCase = getSellerProductsUseCase;
     this.sellerRepository = sellerRepository;
-    this.productRepository = productRepository;
   }
 
   private String resolveSellerId(Authentication auth) {
@@ -54,7 +55,7 @@ public class SellerController {
       @Valid @RequestBody CreateProductRequest req, Authentication auth) {
     String sellerId = resolveSellerId(auth);
     Product product =
-        createProductService.execute(
+        createProductUseCase.execute(
             sellerId,
             req.getName(),
             req.getDescription(),
@@ -75,7 +76,7 @@ public class SellerController {
   @PostMapping("/products/{productId}/publish")
   public ResponseEntity<?> publish(@PathVariable String productId, Authentication auth) {
     String sellerId = resolveSellerId(auth);
-    Product product = publishProductService.execute(productId, sellerId);
+    Product product = publishProductUseCase.execute(productId, sellerId);
     return ResponseEntity.ok(Map.of("id", product.getId(), "status", product.getStatus().name()));
   }
 
@@ -84,7 +85,7 @@ public class SellerController {
       @Valid @RequestBody AddInventoryRequest req, Authentication auth) {
     String sellerId = resolveSellerId(auth);
     InventoryItem item =
-        addInventoryService.execute(
+        addInventoryUseCase.execute(
             req.getProductId(), req.getWarehouseId(), req.getQuantity(), sellerId);
     return ResponseEntity.ok(
         Map.of(
@@ -98,7 +99,7 @@ public class SellerController {
   public ResponseEntity<?> myProducts(Authentication auth) {
     String sellerId = resolveSellerId(auth);
     List<Map<String, Object>> list =
-        productRepository.findBySellerId(sellerId).stream()
+        getSellerProductsUseCase.getProducts(sellerId).stream()
             .map(
                 p ->
                     Map.<String, Object>of(

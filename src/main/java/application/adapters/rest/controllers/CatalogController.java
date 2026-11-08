@@ -1,7 +1,8 @@
 package application.adapters.rest.controllers;
 
 import application.domain.models.Product;
-import application.domain.ports.out.ProductRepositoryPort;
+import application.domain.ports.in.BrowseCatalogUseCase;
+import application.domain.ports.in.GetProductUseCase;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -12,24 +13,28 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/catalog")
 public class CatalogController {
 
-  private final ProductRepositoryPort productRepository;
+  private final BrowseCatalogUseCase browseCatalogUseCase;
+  private final GetProductUseCase getProductUseCase;
 
-  public CatalogController(ProductRepositoryPort productRepository) {
-    this.productRepository = productRepository;
+  public CatalogController(
+      BrowseCatalogUseCase browseCatalogUseCase, GetProductUseCase getProductUseCase) {
+    this.browseCatalogUseCase = browseCatalogUseCase;
+    this.getProductUseCase = getProductUseCase;
   }
 
   @GetMapping("/products")
   public ResponseEntity<List<Map<String, Object>>> listPublished() {
     List<Map<String, Object>> products =
-        productRepository.findPublished().stream().map(this::toMap).collect(Collectors.toList());
+        browseCatalogUseCase.browsePublishedProducts().stream()
+            .map(this::toMap)
+            .collect(Collectors.toList());
     return ResponseEntity.ok(products);
   }
 
   @GetMapping("/products/{id}")
   public ResponseEntity<?> getById(@PathVariable String id) {
-    return productRepository
-        .findById(id)
-        .filter(Product::isAvailableForSale)
+    return getProductUseCase
+        .getPublishedProduct(id)
         .map(p -> ResponseEntity.ok(toMap(p)))
         .orElse(ResponseEntity.notFound().build());
   }

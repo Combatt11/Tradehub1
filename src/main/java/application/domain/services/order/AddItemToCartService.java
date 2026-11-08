@@ -7,6 +7,7 @@ import application.domain.models.InventoryItem;
 import application.domain.models.Order;
 import application.domain.models.OrderItem;
 import application.domain.models.Product;
+import application.domain.ports.in.AddItemToCartUseCase;
 import application.domain.ports.out.BuyerRepositoryPort;
 import application.domain.ports.out.InventoryRepositoryPort;
 import application.domain.ports.out.OrderRepositoryPort;
@@ -15,7 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-public class AddItemToCartService {
+public class AddItemToCartService implements AddItemToCartUseCase {
 
   private final OrderRepositoryPort orderRepository;
   private final ProductRepositoryPort productRepository;
@@ -36,6 +37,7 @@ public class AddItemToCartService {
     this.getCartService = getCartService;
   }
 
+  @Override
   @Transactional
   public Order addItem(String buyerId, String productId, int quantity, String warehouseId) {
     Buyer buyer =

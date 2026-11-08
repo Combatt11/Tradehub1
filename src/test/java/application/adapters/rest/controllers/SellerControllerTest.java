@@ -20,11 +20,11 @@ import application.domain.exceptions.UnauthorizedOperationException;
 import application.domain.models.InventoryItem;
 import application.domain.models.Product;
 import application.domain.models.Seller;
-import application.domain.ports.out.ProductRepositoryPort;
+import application.domain.ports.in.AddInventoryUseCase;
+import application.domain.ports.in.CreateProductUseCase;
+import application.domain.ports.in.GetSellerProductsUseCase;
+import application.domain.ports.in.PublishProductUseCase;
 import application.domain.ports.out.SellerRepositoryPort;
-import application.domain.services.inventory.AddInventoryService;
-import application.domain.services.product.CreateProductService;
-import application.domain.services.product.PublishProductService;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
@@ -50,11 +50,11 @@ class SellerControllerTest {
 
   @Autowired private MockMvc mockMvc;
 
-  @MockBean private CreateProductService createProductService;
-  @MockBean private PublishProductService publishProductService;
-  @MockBean private AddInventoryService addInventoryService;
+  @MockBean private CreateProductUseCase createProductUseCase;
+  @MockBean private PublishProductUseCase publishProductUseCase;
+  @MockBean private AddInventoryUseCase addInventoryUseCase;
+  @MockBean private GetSellerProductsUseCase getSellerProductsUseCase;
   @MockBean private SellerRepositoryPort sellerRepository;
-  @MockBean private ProductRepositoryPort productRepository;
   @MockBean private JwtProvider jwtProvider;
 
   /**
@@ -98,7 +98,7 @@ class SellerControllerTest {
   @DisplayName("POST /api/seller/products returns 201 when the product is created")
   void createProductReturns201() throws Exception {
     givenSellerProfile();
-    when(createProductService.execute(
+    when(createProductUseCase.execute(
             anyString(), anyString(), any(), any(), any(BigDecimal.class), any()))
         .thenReturn(draftProduct());
 
@@ -131,7 +131,7 @@ class SellerControllerTest {
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.error").exists());
 
-    verify(createProductService, never()).execute(anyString(), any(), any(), any(), any(), any());
+    verify(createProductUseCase, never()).execute(anyString(), any(), any(), any(), any(), any());
   }
 
   @Test
@@ -158,7 +158,7 @@ class SellerControllerTest {
     givenSellerProfile();
     Product published = draftProduct();
     published.publish();
-    when(publishProductService.execute(eq("product-1"), anyString())).thenReturn(published);
+    when(publishProductUseCase.execute(eq("product-1"), anyString())).thenReturn(published);
 
     mockMvc
         .perform(asSeller(post("/api/seller/products/product-1/publish")))
@@ -170,7 +170,7 @@ class SellerControllerTest {
   @DisplayName("POST /api/seller/products/{id}/publish returns 400 when the product is not found")
   void publishReturns400WhenProductNotFound() throws Exception {
     givenSellerProfile();
-    when(publishProductService.execute(anyString(), anyString()))
+    when(publishProductUseCase.execute(anyString(), anyString()))
         .thenThrow(new UnauthorizedOperationException("Product not found"));
 
     mockMvc
@@ -183,7 +183,7 @@ class SellerControllerTest {
   @DisplayName("POST /api/seller/inventory returns 200 when stock is added")
   void addInventoryReturns200() throws Exception {
     givenSellerProfile();
-    when(addInventoryService.execute(anyString(), anyString(), anyInt(), anyString()))
+    when(addInventoryUseCase.execute(anyString(), anyString(), anyInt(), anyString()))
         .thenReturn(InventoryItem.create("product-1", "wh-1", 10));
 
     mockMvc
@@ -215,14 +215,14 @@ class SellerControllerTest {
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.error").exists());
 
-    verify(addInventoryService, never()).execute(any(), any(), anyInt(), any());
+    verify(addInventoryUseCase, never()).execute(any(), any(), anyInt(), any());
   }
 
   @Test
   @DisplayName("POST /api/seller/inventory returns 400 when the product is not owned by the seller")
   void addInventoryReturns400WhenNotOwner() throws Exception {
     givenSellerProfile();
-    when(addInventoryService.execute(anyString(), anyString(), anyInt(), anyString()))
+    when(addInventoryUseCase.execute(anyString(), anyString(), anyInt(), anyString()))
         .thenThrow(new UnauthorizedOperationException("Product does not belong to this seller"));
 
     mockMvc
@@ -242,7 +242,7 @@ class SellerControllerTest {
   @DisplayName("GET /api/seller/products returns 200 with the seller catalog")
   void myProductsReturns200() throws Exception {
     givenSellerProfile();
-    when(productRepository.findBySellerId(anyString())).thenReturn(List.of(draftProduct()));
+    when(getSellerProductsUseCase.getProducts(anyString())).thenReturn(List.of(draftProduct()));
 
     mockMvc
         .perform(asSeller(get("/api/seller/products")))
