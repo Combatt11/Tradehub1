@@ -77,6 +77,13 @@ public class Order {
     touch();
   }
 
+  public void clearItems() {
+    ensureModifiable();
+    this.items.clear();
+    recalculateTotal();
+    touch();
+  }
+
   public void confirmPayment(String paymentReference) {
     if (status != OrderStatus.PENDING_PAYMENT && status != OrderStatus.CART) {
       throw new IllegalStateException("Order cannot accept payment in status: " + status);

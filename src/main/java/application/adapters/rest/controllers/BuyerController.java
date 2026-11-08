@@ -4,8 +4,12 @@ import application.adapters.rest.dto.AddToCartRequest;
 import application.domain.models.Buyer;
 import application.domain.models.Order;
 import application.domain.ports.out.BuyerRepositoryPort;
-import application.domain.services.order.CartService;
-import application.domain.services.order.OrderLifecycleService;
+import application.domain.ports.out.OrderRepositoryPort;
+import application.domain.services.order.AddItemToCartService;
+import application.domain.services.order.ClearCartService;
+import application.domain.services.order.ConfirmPaymentService;
+import application.domain.services.order.GetCartService;
+import application.domain.services.order.SubmitOrderFromCartService;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Map;
@@ -18,18 +22,27 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/buyer")
 public class BuyerController {
 
-  private final CartService cartService;
-  private final OrderLifecycleService orderLifecycleService;
+  private final GetCartService getCartService;
+  private final AddItemToCartService addItemToCartService;
+  private final ClearCartService clearCartService;
+  private final SubmitOrderFromCartService submitOrderFromCartService;
+  private final ConfirmPaymentService confirmPaymentService;
   private final BuyerRepositoryPort buyerRepository;
-  private final application.domain.ports.out.OrderRepositoryPort orderRepository;
+  private final OrderRepositoryPort orderRepository;
 
   public BuyerController(
-      CartService cartService,
-      OrderLifecycleService orderLifecycleService,
+      GetCartService getCartService,
+      AddItemToCartService addItemToCartService,
+      ClearCartService clearCartService,
+      SubmitOrderFromCartService submitOrderFromCartService,
+      ConfirmPaymentService confirmPaymentService,
       BuyerRepositoryPort buyerRepository,
-      application.domain.ports.out.OrderRepositoryPort orderRepository) {
-    this.cartService = cartService;
-    this.orderLifecycleService = orderLifecycleService;
+      OrderRepositoryPort orderRepository) {
+    this.getCartService = getCartService;
+    this.addItemToCartService = addItemToCartService;
+    this.clearCartService = clearCartService;
+    this.submitOrderFromCartService = submitOrderFromCartService;
+    this.confirmPaymentService = confirmPaymentService;
     this.buyerRepository = buyerRepository;
     this.orderRepository = orderRepository;
   }
@@ -45,7 +58,7 @@ public class BuyerController {
   @GetMapping("/cart")
   public ResponseEntity<?> getCart(Authentication auth) {
     String buyerId = resolveBuyerId(auth);
-    Order cart = cartService.getOrCreateCart(buyerId);
+    Order cart = getCartService.getOrCreateCart(buyerId);
     return ResponseEntity.ok(toOrderMap(cart));
   }
 
@@ -54,14 +67,22 @@ public class BuyerController {
       @Valid @RequestBody AddToCartRequest req, Authentication auth) {
     String buyerId = resolveBuyerId(auth);
     Order cart =
-        cartService.addToCart(buyerId, req.getProductId(), req.getQuantity(), req.getWarehouseId());
+        addItemToCartService.addItem(
+            buyerId, req.getProductId(), req.getQuantity(), req.getWarehouseId());
+    return ResponseEntity.ok(toOrderMap(cart));
+  }
+
+  @DeleteMapping("/cart")
+  public ResponseEntity<?> clearCart(Authentication auth) {
+    String buyerId = resolveBuyerId(auth);
+    Order cart = clearCartService.clearCart(buyerId);
     return ResponseEntity.ok(toOrderMap(cart));
   }
 
   @PostMapping("/cart/submit")
   public ResponseEntity<?> submitOrder(@RequestBody Map<String, String> body, Authentication auth) {
     String buyerId = resolveBuyerId(auth);
-    Order order = cartService.submitOrder(buyerId, body.get("shippingAddress"));
+    Order order = submitOrderFromCartService.submitOrder(buyerId, body.get("shippingAddress"));
     return ResponseEntity.ok(toOrderMap(order));
   }
 
@@ -70,7 +91,7 @@ public class BuyerController {
       @PathVariable String orderId, @RequestBody Map<String, String> body, Authentication auth) {
     String buyerId = resolveBuyerId(auth);
     Order order =
-        orderLifecycleService.confirmPayment(orderId, buyerId, body.get("paymentReference"));
+        confirmPaymentService.confirmPayment(orderId, buyerId, body.get("paymentReference"));
     return ResponseEntity.ok(toOrderMap(order));
   }
 

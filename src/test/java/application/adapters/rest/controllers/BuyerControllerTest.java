@@ -8,6 +8,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -23,8 +24,11 @@ import application.domain.models.Order;
 import application.domain.models.OrderItem;
 import application.domain.ports.out.BuyerRepositoryPort;
 import application.domain.ports.out.OrderRepositoryPort;
-import application.domain.services.order.CartService;
-import application.domain.services.order.OrderLifecycleService;
+import application.domain.services.order.AddItemToCartService;
+import application.domain.services.order.ClearCartService;
+import application.domain.services.order.ConfirmPaymentService;
+import application.domain.services.order.GetCartService;
+import application.domain.services.order.SubmitOrderFromCartService;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
@@ -51,8 +55,11 @@ class BuyerControllerTest {
 
   @Autowired private MockMvc mockMvc;
 
-  @MockBean private CartService cartService;
-  @MockBean private OrderLifecycleService orderLifecycleService;
+  @MockBean private GetCartService getCartService;
+  @MockBean private AddItemToCartService addItemToCartService;
+  @MockBean private ClearCartService clearCartService;
+  @MockBean private SubmitOrderFromCartService submitOrderFromCartService;
+  @MockBean private ConfirmPaymentService confirmPaymentService;
   @MockBean private BuyerRepositoryPort buyerRepository;
   @MockBean private OrderRepositoryPort orderRepository;
   @MockBean private JwtProvider jwtProvider;
@@ -92,7 +99,7 @@ class BuyerControllerTest {
   @DisplayName("GET /api/buyer/cart returns 200 with the cart payload")
   void getCartReturns200() throws Exception {
     givenBuyerProfile();
-    when(cartService.getOrCreateCart(anyString())).thenReturn(cart);
+    when(getCartService.getOrCreateCart(anyString())).thenReturn(cart);
 
     mockMvc
         .perform(asBuyer(get("/api/buyer/cart")))
@@ -112,14 +119,15 @@ class BuyerControllerTest {
         .andExpect(status().isInternalServerError())
         .andExpect(jsonPath("$.error").value("Buyer profile not found"));
 
-    verify(cartService, never()).getOrCreateCart(anyString());
+    verify(getCartService, never()).getOrCreateCart(anyString());
   }
 
   @Test
   @DisplayName("POST /api/buyer/cart/items returns 200 when the item is added")
   void addToCartReturns200() throws Exception {
     givenBuyerProfile();
-    when(cartService.addToCart(anyString(), eq("product-1"), eq(2), eq("wh-1"))).thenReturn(cart);
+    when(addItemToCartService.addItem(anyString(), eq("product-1"), eq(2), eq("wh-1")))
+        .thenReturn(cart);
 
     mockMvc
         .perform(
@@ -149,14 +157,14 @@ class BuyerControllerTest {
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.error").exists());
 
-    verify(cartService, never()).addToCart(anyString(), anyString(), anyInt(), any());
+    verify(addItemToCartService, never()).addItem(anyString(), anyString(), anyInt(), any());
   }
 
   @Test
   @DisplayName("POST /api/buyer/cart/items returns 400 when stock is insufficient")
   void addToCartReturns400OnInsufficientStock() throws Exception {
     givenBuyerProfile();
-    when(cartService.addToCart(anyString(), anyString(), anyInt(), any()))
+    when(addItemToCartService.addItem(anyString(), anyString(), anyInt(), any()))
         .thenThrow(new InsufficientStockException("product-1", 5, 1));
 
     mockMvc
@@ -174,13 +182,27 @@ class BuyerControllerTest {
   }
 
   @Test
+  @DisplayName("DELETE /api/buyer/cart returns 200 with the emptied cart")
+  void clearCartReturns200() throws Exception {
+    givenBuyerProfile();
+    when(clearCartService.clearCart(anyString())).thenReturn(Order.createCart(BUYER_ID));
+
+    mockMvc
+        .perform(asBuyer(delete("/api/buyer/cart")))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.status").value("CART"))
+        .andExpect(jsonPath("$.itemCount").value(0))
+        .andExpect(jsonPath("$.totalAmount").value(0.00));
+  }
+
+  @Test
   @DisplayName("POST /api/buyer/cart/submit returns 200 with the submitted order")
   void submitOrderReturns200() throws Exception {
     givenBuyerProfile();
     Order submitted = Order.createCart(BUYER_ID);
     submitted.addItem(new OrderItem("product-1", "Laptop", 1, new BigDecimal("50.00"), "wh-1"));
     submitted.submitForPayment("Calle 99");
-    when(cartService.submitOrder(anyString(), eq("Calle 99"))).thenReturn(submitted);
+    when(submitOrderFromCartService.submitOrder(anyString(), eq("Calle 99"))).thenReturn(submitted);
 
     mockMvc
         .perform(
@@ -200,7 +222,7 @@ class BuyerControllerTest {
   @DisplayName("POST /api/buyer/cart/submit returns 400 when there is no active cart")
   void submitOrderReturns400WhenNoCart() throws Exception {
     givenBuyerProfile();
-    when(cartService.submitOrder(anyString(), any()))
+    when(submitOrderFromCartService.submitOrder(anyString(), any()))
         .thenThrow(new UnauthorizedOperationException("No active cart found"));
 
     mockMvc
@@ -223,7 +245,7 @@ class BuyerControllerTest {
     Order paid = Order.createCart(BUYER_ID);
     paid.addItem(new OrderItem("product-1", "Laptop", 1, new BigDecimal("50.00"), "wh-1"));
     paid.confirmPayment("PAY-1");
-    when(orderLifecycleService.confirmPayment(eq("order-1"), anyString(), eq("PAY-1")))
+    when(confirmPaymentService.confirmPayment(eq("order-1"), anyString(), eq("PAY-1")))
         .thenReturn(paid);
 
     mockMvc
@@ -243,7 +265,7 @@ class BuyerControllerTest {
   @DisplayName("POST /api/buyer/orders/{id}/pay returns 400 when the order is not found")
   void confirmPaymentReturns400WhenOrderNotFound() throws Exception {
     givenBuyerProfile();
-    when(orderLifecycleService.confirmPayment(anyString(), anyString(), any()))
+    when(confirmPaymentService.confirmPayment(anyString(), anyString(), any()))
         .thenThrow(new UnauthorizedOperationException("Order not found"));
 
     mockMvc
