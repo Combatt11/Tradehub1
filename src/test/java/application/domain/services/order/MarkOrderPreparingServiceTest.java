@@ -7,7 +7,8 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import application.domain.exceptions.UnauthorizedOperationException;
+import application.domain.exceptions.OrderNotFoundException;
+import application.domain.exceptions.OrderNotPreparableException;
 import application.domain.models.Order;
 import application.domain.models.OrderItem;
 import application.domain.ports.out.OrderRepositoryPort;
@@ -64,8 +65,8 @@ class MarkOrderPreparingServiceTest {
     givenOrderInStatus(Order.OrderStatus.CART);
 
     assertThatThrownBy(() -> service.markPreparing(ORDER_ID))
-        .isInstanceOf(IllegalStateException.class)
-        .hasMessage("Only PAID orders can be prepared");
+        .isInstanceOf(OrderNotPreparableException.class)
+        .hasMessageContaining("Only PAID orders can be prepared");
 
     verify(orderRepository, never()).save(any());
   }
@@ -76,8 +77,8 @@ class MarkOrderPreparingServiceTest {
     when(orderRepository.findById(ORDER_ID)).thenReturn(Optional.empty());
 
     assertThatThrownBy(() -> service.markPreparing(ORDER_ID))
-        .isInstanceOf(UnauthorizedOperationException.class)
-        .hasMessage("Order not found");
+        .isInstanceOf(OrderNotFoundException.class)
+        .hasMessage("Order not found: order-1");
 
     verify(orderRepository, never()).save(any());
   }

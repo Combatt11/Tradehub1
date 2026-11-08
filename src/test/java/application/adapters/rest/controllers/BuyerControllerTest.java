@@ -17,12 +17,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import application.adapters.rest.GlobalExceptionHandler;
 import application.adapters.security.JwtProvider;
 import application.adapters.security.SecurityConfig;
+import application.domain.exceptions.CartNotFoundException;
 import application.domain.exceptions.InsufficientStockException;
-import application.domain.exceptions.UnauthorizedOperationException;
+import application.domain.exceptions.OrderNotFoundException;
 import application.domain.models.Buyer;
 import application.domain.models.Order;
 import application.domain.models.OrderItem;
 import application.domain.ports.in.AddItemToCartUseCase;
+import application.domain.ports.in.CancelOrderUseCase;
 import application.domain.ports.in.ClearCartUseCase;
 import application.domain.ports.in.ConfirmPaymentUseCase;
 import application.domain.ports.in.GetBuyerOrdersUseCase;
@@ -60,6 +62,7 @@ class BuyerControllerTest {
   @MockBean private ClearCartUseCase clearCartUseCase;
   @MockBean private SubmitOrderFromCartUseCase submitOrderFromCartUseCase;
   @MockBean private ConfirmPaymentUseCase confirmPaymentUseCase;
+  @MockBean private CancelOrderUseCase cancelOrderUseCase;
   @MockBean private GetBuyerOrdersUseCase getBuyerOrdersUseCase;
   @MockBean private BuyerRepositoryPort buyerRepository;
   @MockBean private JwtProvider jwtProvider;
@@ -110,14 +113,14 @@ class BuyerControllerTest {
   }
 
   @Test
-  @DisplayName("GET /api/buyer/cart returns 500 when the buyer profile is missing")
-  void getCartReturns500WhenProfileMissing() throws Exception {
+  @DisplayName("GET /api/buyer/cart returns 404 when the buyer profile is missing")
+  void getCartReturns404WhenProfileMissing() throws Exception {
     when(buyerRepository.findByUserId(USER_ID)).thenReturn(Optional.empty());
 
     mockMvc
         .perform(asBuyer(get("/api/buyer/cart")))
-        .andExpect(status().isInternalServerError())
-        .andExpect(jsonPath("$.error").value("Buyer profile not found"));
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.error").value("Buyer not found: user-1"));
 
     verify(getCartUseCase, never()).getOrCreateCart(anyString());
   }
@@ -219,11 +222,11 @@ class BuyerControllerTest {
   }
 
   @Test
-  @DisplayName("POST /api/buyer/cart/submit returns 400 when there is no active cart")
-  void submitOrderReturns400WhenNoCart() throws Exception {
+  @DisplayName("POST /api/buyer/cart/submit returns 404 when there is no active cart")
+  void submitOrderReturns404WhenNoCart() throws Exception {
     givenBuyerProfile();
     when(submitOrderFromCartUseCase.submitOrder(anyString(), any()))
-        .thenThrow(new UnauthorizedOperationException("No active cart found"));
+        .thenThrow(new CartNotFoundException(BUYER_ID));
 
     mockMvc
         .perform(
@@ -234,8 +237,8 @@ class BuyerControllerTest {
                         """
                         {"shippingAddress":"Calle 99"}
                         """)))
-        .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.error").value("No active cart found"));
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.error").value("No active cart found for buyer: " + BUYER_ID));
   }
 
   @Test
@@ -262,11 +265,11 @@ class BuyerControllerTest {
   }
 
   @Test
-  @DisplayName("POST /api/buyer/orders/{id}/pay returns 400 when the order is not found")
-  void confirmPaymentReturns400WhenOrderNotFound() throws Exception {
+  @DisplayName("POST /api/buyer/orders/{id}/pay returns 404 when the order is not found")
+  void confirmPaymentReturns404WhenOrderNotFound() throws Exception {
     givenBuyerProfile();
     when(confirmPaymentUseCase.confirmPayment(anyString(), anyString(), any()))
-        .thenThrow(new UnauthorizedOperationException("Order not found"));
+        .thenThrow(new OrderNotFoundException("order-1"));
 
     mockMvc
         .perform(
@@ -277,8 +280,22 @@ class BuyerControllerTest {
                         """
                         {"paymentReference":"PAY-1"}
                         """)))
-        .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.error").value("Order not found"));
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.error").value("Order not found: order-1"));
+  }
+
+  @Test
+  @DisplayName("POST /api/buyer/orders/{id}/cancel returns 200 when the order is cancelled")
+  void cancelOrderReturns200() throws Exception {
+    givenBuyerProfile();
+    Order cancelled = Order.createCart(BUYER_ID);
+    cancelled.cancel();
+    when(cancelOrderUseCase.cancelOrder(eq("order-1"), anyString())).thenReturn(cancelled);
+
+    mockMvc
+        .perform(asBuyer(post("/api/buyer/orders/order-1/cancel")))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.status").value("CANCELLED"));
   }
 
   @Test

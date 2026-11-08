@@ -2,6 +2,7 @@ package application.adapters.rest.controllers;
 
 import application.adapters.rest.dto.AddInventoryRequest;
 import application.adapters.rest.dto.CreateProductRequest;
+import application.domain.exceptions.SellerNotFoundException;
 import application.domain.models.InventoryItem;
 import application.domain.models.Product;
 import application.domain.models.Seller;
@@ -47,7 +48,7 @@ public class SellerController {
     return sellerRepository
         .findByUserId(userId)
         .map(Seller::getId)
-        .orElseThrow(() -> new RuntimeException("Seller profile not found"));
+        .orElseThrow(() -> new SellerNotFoundException(userId));
   }
 
   @PostMapping("/products")
@@ -59,7 +60,7 @@ public class SellerController {
             sellerId,
             req.getName(),
             req.getDescription(),
-            Product.ProductType.valueOf(req.getType().toUpperCase()),
+            Product.parseType(req.getType()),
             req.getPrice(),
             req.getSku());
     return ResponseEntity.status(HttpStatus.CREATED)

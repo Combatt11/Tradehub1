@@ -1,6 +1,6 @@
 package application.domain.services.product;
 
-import application.domain.exceptions.UnauthorizedOperationException;
+import application.domain.exceptions.SellerNotFoundException;
 import application.domain.models.Product;
 import application.domain.models.Seller;
 import application.domain.ports.in.CreateProductUseCase;
@@ -33,8 +33,8 @@ public class CreateProductService implements CreateProductUseCase {
     Seller seller =
         sellerRepository
             .findById(sellerId)
-            .orElseThrow(() -> new UnauthorizedOperationException("Seller not found"));
-    if (!seller.isActive()) throw new UnauthorizedOperationException("Seller is not active");
+            .orElseThrow(() -> new SellerNotFoundException(sellerId));
+    seller.ensureActive();
     return productRepository.save(Product.create(sellerId, name, description, type, price, sku));
   }
 }

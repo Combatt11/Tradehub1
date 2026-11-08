@@ -7,7 +7,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import application.domain.exceptions.UnauthorizedOperationException;
+import application.domain.exceptions.CartNotFoundException;
 import application.domain.models.Order;
 import application.domain.models.OrderItem;
 import application.domain.ports.out.OrderRepositoryPort;
@@ -52,8 +52,8 @@ class ClearCartServiceTest {
     when(orderRepository.findActiveCartByBuyerId(BUYER_ID)).thenReturn(Optional.empty());
 
     assertThatThrownBy(() -> service.clearCart(BUYER_ID))
-        .isInstanceOf(UnauthorizedOperationException.class)
-        .hasMessage("No active cart found");
+        .isInstanceOf(CartNotFoundException.class)
+        .hasMessage("No active cart found for buyer: buyer-1");
 
     verify(orderRepository, never()).save(any());
   }

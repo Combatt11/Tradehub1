@@ -1,6 +1,6 @@
 package application.domain.services.user;
 
-import application.domain.exceptions.UnauthorizedOperationException;
+import application.domain.exceptions.UserNotFoundException;
 import application.domain.models.User;
 import application.domain.ports.in.ChangeUserStatusUseCase;
 import application.domain.ports.out.UserRepositoryPort;
@@ -20,9 +20,7 @@ public class ChangeUserStatusService implements ChangeUserStatusUseCase {
   @Transactional
   public User changeUserStatus(String userId, User.Status status) {
     User user =
-        userRepository
-            .findById(userId)
-            .orElseThrow(() -> new UnauthorizedOperationException("User not found"));
+        userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
     switch (status) {
       case ACTIVE -> user.activate();
       case BLOCKED -> user.block();

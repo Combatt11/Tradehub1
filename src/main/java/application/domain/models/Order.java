@@ -1,5 +1,17 @@
 package application.domain.models;
 
+import application.domain.exceptions.EmptyCartException;
+import application.domain.exceptions.OrderAlreadyPaidException;
+import application.domain.exceptions.OrderNotCancellableException;
+import application.domain.exceptions.OrderNotDeliverableException;
+import application.domain.exceptions.OrderNotDispatchableException;
+import application.domain.exceptions.OrderNotFinalizableException;
+import application.domain.exceptions.OrderNotModifiableException;
+import application.domain.exceptions.OrderNotPayableException;
+import application.domain.exceptions.OrderNotPreparableException;
+import application.domain.exceptions.OrderNotSubmittableException;
+import application.domain.exceptions.OrderOwnershipException;
+import application.domain.exceptions.ShippingAddressRequiredException;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -85,24 +97,33 @@ public class Order {
   }
 
   public void confirmPayment(String paymentReference) {
-    if (status != OrderStatus.PENDING_PAYMENT && status != OrderStatus.CART) {
-      throw new IllegalStateException("Order cannot accept payment in status: " + status);
+    if (status == OrderStatus.CART || status == OrderStatus.PENDING_PAYMENT) {
+      this.paymentReference = paymentReference;
+      this.status = OrderStatus.PAID;
+      touch();
+      return;
     }
-    this.paymentReference = paymentReference;
-    this.status = OrderStatus.PAID;
-    touch();
+    if (status == OrderStatus.PAID
+        || status == OrderStatus.PREPARING
+        || status == OrderStatus.DISPATCHED
+        || status == OrderStatus.DELIVERED
+        || status == OrderStatus.FINALIZED) {
+      throw new OrderAlreadyPaidException(id);
+    }
+    throw new OrderNotPayableException(id, status.name());
   }
 
   public void markPreparing() {
-    if (status != OrderStatus.PAID)
-      throw new IllegalStateException("Only PAID orders can be prepared");
+    if (status != OrderStatus.PAID) {
+      throw new OrderNotPreparableException(id, status.name());
+    }
     this.status = OrderStatus.PREPARING;
     touch();
   }
 
   public void markDispatched() {
     if (status != OrderStatus.PREPARING && status != OrderStatus.PAID) {
-      throw new IllegalStateException("Only PREPARING/PAID orders can be dispatched");
+      throw new OrderNotDispatchableException(id, status.name());
     }
     this.status = OrderStatus.DISPATCHED;
     touch();
@@ -110,7 +131,7 @@ public class Order {
 
   public void markDelivered() {
     if (status != OrderStatus.DISPATCHED) {
-      throw new IllegalStateException("Only DISPATCHED orders can be marked delivered");
+      throw new OrderNotDeliverableException(id, status.name());
     }
     this.status = OrderStatus.DELIVERED;
     touch();
@@ -118,7 +139,7 @@ public class Order {
 
   public void finalizeOrder() {
     if (status != OrderStatus.DELIVERED) {
-      throw new IllegalStateException("Only DELIVERED orders can be finalized");
+      throw new OrderNotFinalizableException(id, status.name());
     }
     this.status = OrderStatus.FINALIZED;
     touch();
@@ -128,23 +149,34 @@ public class Order {
     if (status == OrderStatus.FINALIZED
         || status == OrderStatus.DISPATCHED
         || status == OrderStatus.DELIVERED) {
-      throw new IllegalStateException("Cannot cancel order in status: " + status);
+      throw new OrderNotCancellableException(id, status.name());
     }
     this.status = OrderStatus.CANCELLED;
     touch();
   }
 
   public void submitForPayment(String shippingAddress) {
-    if (status != OrderStatus.CART) throw new IllegalStateException("Only CART can be submitted");
-    if (items.isEmpty()) throw new IllegalStateException("Cart is empty");
-    this.shippingAddress = Objects.requireNonNull(shippingAddress);
+    if (status != OrderStatus.CART) {
+      throw new OrderNotSubmittableException(id, status.name());
+    }
+    if (items.isEmpty()) throw new EmptyCartException(id);
+    if (shippingAddress == null || shippingAddress.isBlank()) {
+      throw new ShippingAddressRequiredException();
+    }
+    this.shippingAddress = shippingAddress;
     this.status = OrderStatus.PENDING_PAYMENT;
     touch();
   }
 
+  public void ensureOwnedBy(String buyerId) {
+    if (!this.buyerId.equals(buyerId)) {
+      throw new OrderOwnershipException(id, buyerId);
+    }
+  }
+
   private void ensureModifiable() {
     if (status == OrderStatus.FINALIZED || status == OrderStatus.CANCELLED) {
-      throw new IllegalStateException("Order cannot be modified in status: " + status);
+      throw new OrderNotModifiableException(id, status.name());
     }
   }
 

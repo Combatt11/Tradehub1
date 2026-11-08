@@ -8,12 +8,16 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import application.domain.exceptions.BuyerCannotPurchaseException;
+import application.domain.exceptions.BuyerNotFoundException;
 import application.domain.exceptions.InsufficientStockException;
-import application.domain.exceptions.UnauthorizedOperationException;
+import application.domain.exceptions.ProductNotAvailableException;
+import application.domain.exceptions.ProductNotFoundException;
 import application.domain.models.Buyer;
 import application.domain.models.InventoryItem;
 import application.domain.models.Order;
 import application.domain.models.Product;
+import application.domain.ports.in.GetCartUseCase;
 import application.domain.ports.out.BuyerRepositoryPort;
 import application.domain.ports.out.InventoryRepositoryPort;
 import application.domain.ports.out.OrderRepositoryPort;
@@ -41,7 +45,7 @@ class AddItemToCartServiceTest {
   @Mock private ProductRepositoryPort productRepository;
   @Mock private InventoryRepositoryPort inventoryRepository;
   @Mock private BuyerRepositoryPort buyerRepository;
-  @Mock private GetCartService getCartService;
+  @Mock private GetCartUseCase getCartUseCase;
 
   @InjectMocks private AddItemToCartService service;
 
@@ -95,7 +99,7 @@ class AddItemToCartServiceTest {
           .thenReturn(Optional.of(publishedPhysicalProduct()));
       when(inventoryRepository.findByProductAndWarehouse(PRODUCT_ID, WAREHOUSE_ID))
           .thenReturn(Optional.of(inventory));
-      when(getCartService.getOrCreateCart(BUYER_ID)).thenReturn(cart);
+      when(getCartUseCase.getOrCreateCart(BUYER_ID)).thenReturn(cart);
       when(orderRepository.save(any(Order.class))).thenAnswer(i -> i.getArgument(0));
 
       Order result = service.addItem(BUYER_ID, PRODUCT_ID, 3, WAREHOUSE_ID);
@@ -114,7 +118,7 @@ class AddItemToCartServiceTest {
       when(buyerRepository.findById(BUYER_ID)).thenReturn(Optional.of(activeBuyer()));
       when(productRepository.findById(PRODUCT_ID))
           .thenReturn(Optional.of(publishedDigitalProduct()));
-      when(getCartService.getOrCreateCart(BUYER_ID)).thenReturn(cart);
+      when(getCartUseCase.getOrCreateCart(BUYER_ID)).thenReturn(cart);
       when(orderRepository.save(any(Order.class))).thenAnswer(i -> i.getArgument(0));
 
       Order result = service.addItem(BUYER_ID, PRODUCT_ID, 2, null);
@@ -135,10 +139,10 @@ class AddItemToCartServiceTest {
       when(buyerRepository.findById(BUYER_ID)).thenReturn(Optional.empty());
 
       assertThatThrownBy(() -> service.addItem(BUYER_ID, PRODUCT_ID, 1, WAREHOUSE_ID))
-          .isInstanceOf(UnauthorizedOperationException.class)
-          .hasMessage("Buyer not found");
+          .isInstanceOf(BuyerNotFoundException.class)
+          .hasMessage("Buyer not found: buyer-1");
 
-      verifyNoInteractions(productRepository, inventoryRepository, orderRepository, getCartService);
+      verifyNoInteractions(productRepository, inventoryRepository, orderRepository, getCartUseCase);
     }
 
     @Test
@@ -149,10 +153,10 @@ class AddItemToCartServiceTest {
       when(buyerRepository.findById(BUYER_ID)).thenReturn(Optional.of(suspended));
 
       assertThatThrownBy(() -> service.addItem(BUYER_ID, PRODUCT_ID, 1, WAREHOUSE_ID))
-          .isInstanceOf(UnauthorizedOperationException.class)
-          .hasMessage("Buyer cannot purchase");
+          .isInstanceOf(BuyerCannotPurchaseException.class)
+          .hasMessageContaining("cannot purchase in status: SUSPENDED");
 
-      verifyNoInteractions(productRepository, inventoryRepository, orderRepository, getCartService);
+      verifyNoInteractions(productRepository, inventoryRepository, orderRepository, getCartUseCase);
     }
   }
 
@@ -167,10 +171,10 @@ class AddItemToCartServiceTest {
       when(productRepository.findById(PRODUCT_ID)).thenReturn(Optional.empty());
 
       assertThatThrownBy(() -> service.addItem(BUYER_ID, PRODUCT_ID, 1, WAREHOUSE_ID))
-          .isInstanceOf(UnauthorizedOperationException.class)
-          .hasMessage("Product not found");
+          .isInstanceOf(ProductNotFoundException.class)
+          .hasMessage("Product not found: product-1");
 
-      verifyNoInteractions(inventoryRepository, orderRepository, getCartService);
+      verifyNoInteractions(inventoryRepository, orderRepository, getCartUseCase);
     }
 
     @Test
@@ -191,10 +195,10 @@ class AddItemToCartServiceTest {
       when(productRepository.findById(PRODUCT_ID)).thenReturn(Optional.of(draft));
 
       assertThatThrownBy(() -> service.addItem(BUYER_ID, PRODUCT_ID, 1, WAREHOUSE_ID))
-          .isInstanceOf(UnauthorizedOperationException.class)
-          .hasMessage("Product is not available for sale");
+          .isInstanceOf(ProductNotAvailableException.class)
+          .hasMessageContaining("is not available for sale. Status: DRAFT");
 
-      verifyNoInteractions(inventoryRepository, orderRepository, getCartService);
+      verifyNoInteractions(inventoryRepository, orderRepository, getCartUseCase);
     }
   }
 
@@ -218,7 +222,7 @@ class AddItemToCartServiceTest {
 
       verify(inventoryRepository, never()).save(any());
       verify(orderRepository, never()).save(any());
-      verifyNoInteractions(getCartService);
+      verifyNoInteractions(getCartUseCase);
     }
 
     @Test
@@ -239,7 +243,7 @@ class AddItemToCartServiceTest {
       assertThat(inventory.getQuantityReserved()).isZero();
       verify(inventoryRepository, never()).save(any());
       verify(orderRepository, never()).save(any());
-      verifyNoInteractions(getCartService);
+      verifyNoInteractions(getCartUseCase);
     }
   }
 }

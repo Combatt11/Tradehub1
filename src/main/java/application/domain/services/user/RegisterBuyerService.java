@@ -1,6 +1,5 @@
 package application.domain.services.user;
 
-import application.domain.exceptions.DuplicateEmailException;
 import application.domain.models.Buyer;
 import application.domain.models.User;
 import application.domain.ports.in.RegisterBuyerUseCase;
@@ -15,14 +14,17 @@ public class RegisterBuyerService implements RegisterBuyerUseCase {
   private final UserRepositoryPort userRepository;
   private final BuyerRepositoryPort buyerRepository;
   private final PasswordEncoder passwordEncoder;
+  private final EmailUniquenessValidator emailUniquenessValidator;
 
   public RegisterBuyerService(
       UserRepositoryPort userRepository,
       BuyerRepositoryPort buyerRepository,
-      PasswordEncoder passwordEncoder) {
+      PasswordEncoder passwordEncoder,
+      EmailUniquenessValidator emailUniquenessValidator) {
     this.userRepository = userRepository;
     this.buyerRepository = buyerRepository;
     this.passwordEncoder = passwordEncoder;
+    this.emailUniquenessValidator = emailUniquenessValidator;
   }
 
   @Override
@@ -33,7 +35,7 @@ public class RegisterBuyerService implements RegisterBuyerUseCase {
       String rawPassword,
       String identityDocument,
       String primaryAddress) {
-    if (userRepository.existsByEmail(email)) throw new DuplicateEmailException(email);
+    emailUniquenessValidator.ensureAvailable(email);
     String hash = passwordEncoder.encode(rawPassword);
     User user = User.create(fullName, email, hash, User.Role.BUYER, identityDocument);
     user = userRepository.save(user);

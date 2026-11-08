@@ -7,6 +7,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import application.domain.exceptions.OrderNotFinalizableException;
 import application.domain.models.Order;
 import application.domain.models.OrderItem;
 import application.domain.ports.out.OrderRepositoryPort;
@@ -59,8 +60,8 @@ class FinalizeOrderServiceTest {
     when(orderRepository.findById(ORDER_ID)).thenReturn(Optional.of(order));
 
     assertThatThrownBy(() -> service.finalizeOrder(ORDER_ID))
-        .isInstanceOf(IllegalStateException.class)
-        .hasMessage("Only DELIVERED orders can be finalized");
+        .isInstanceOf(OrderNotFinalizableException.class)
+        .hasMessageContaining("Only DELIVERED orders can be finalized");
 
     verify(orderRepository, never()).save(any());
   }

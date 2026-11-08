@@ -1,6 +1,6 @@
 package application.domain.services.order;
 
-import application.domain.exceptions.UnauthorizedOperationException;
+import application.domain.exceptions.CartNotFoundException;
 import application.domain.models.Order;
 import application.domain.ports.in.ClearCartUseCase;
 import application.domain.ports.out.OrderRepositoryPort;
@@ -22,7 +22,7 @@ public class ClearCartService implements ClearCartUseCase {
     Order cart =
         orderRepository
             .findActiveCartByBuyerId(buyerId)
-            .orElseThrow(() -> new UnauthorizedOperationException("No active cart found"));
+            .orElseThrow(() -> new CartNotFoundException(buyerId));
     cart.clearItems();
     return orderRepository.save(cart);
   }

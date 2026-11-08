@@ -1,5 +1,6 @@
 package application.domain.models;
 
+import application.domain.exceptions.BuyerCannotPurchaseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -50,6 +51,12 @@ public class Buyer {
 
   public boolean canPurchase() {
     return CommercialStatus.ACTIVE.equals(this.commercialStatus);
+  }
+
+  public void ensureCanPurchase() {
+    if (!canPurchase()) {
+      throw new BuyerCannotPurchaseException(id, commercialStatus.name());
+    }
   }
 
   public String getId() {
