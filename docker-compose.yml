@@ -1,0 +1,54 @@
+name: tradehub
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: tradehub-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_NAME:-tradehub}
+      MYSQL_USER: ${DB_USER:-tradehub}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-tradehub}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    ports:
+      # Exposed for local inspection with a MySQL client; the app uses the
+      # internal Docker network and does not need this mapping.
+      - "${MYSQL_PORT:-3306}:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "mysqladmin ping -h 127.0.0.1 -u root -p$$MYSQL_ROOT_PASSWORD --silent",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: tradehub:latest
+    container_name: tradehub-app
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DB_URL: jdbc:mysql://mysql:3306/${DB_NAME:-tradehub}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&characterEncoding=UTF-8
+      DB_USER: ${DB_USER:-tradehub}
+      DB_PASSWORD: ${DB_PASSWORD:-tradehub}
+      JWT_SECRET: ${JWT_SECRET:-change_me_in_production_this_secret_must_be_at_least_32_chars}
+    ports:
+      - "${APP_PORT:-8080}:8080"
+
+volumes:
+  mysql-data:
+    name: tradehub-mysql-data

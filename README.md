@@ -41,7 +41,7 @@ application/
 
 ## Quick start
 
-### Local (H2 in-memory)
+### Local (H2 in-memory, `dev` profile)
 
 ```bash
 mvn spring-boot:run
@@ -49,12 +49,15 @@ mvn spring-boot:run
 
 App runs at `http://localhost:8080`
 
-### Docker
+### Docker Compose (app + MySQL 8, `prod` profile)
 
 ```bash
-docker build -t tradehub .
-docker run -p 8080:8080 tradehub
+cp .env.example .env   # set DB_PASSWORD, MYSQL_ROOT_PASSWORD and JWT_SECRET
+docker compose up --build
 ```
+
+App runs at `http://localhost:8080`, backed by MySQL 8 with a persistent volume.
+See [SETUP.md](SETUP.md) for profiles, environment variables and troubleshooting.
 
 ## Development Setup
 
@@ -158,11 +161,11 @@ cp .env.example .env
 
 - Java 17
 - Spring Boot 3.3
-- Spring Data JPA + H2 (dev) / MySQL ready
+- Spring Data JPA + H2 (dev profile) / MySQL 8 (prod profile)
 - Spring Security + JWT (jjwt 0.12)
 - Lombok
 - Maven
-- Docker
+- Docker + Docker Compose (multi-stage build, app + MySQL 8)
 
 ## Project ready for GitHub
 
