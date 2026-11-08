@@ -2,18 +2,20 @@ package application.domain.services.product;
 
 import application.domain.exceptions.UnauthorizedOperationException;
 import application.domain.models.Product;
+import application.domain.ports.in.PublishProductUseCase;
 import application.domain.ports.out.ProductRepositoryPort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-public class PublishProductService {
+public class PublishProductService implements PublishProductUseCase {
   private final ProductRepositoryPort productRepository;
 
   public PublishProductService(ProductRepositoryPort productRepository) {
     this.productRepository = productRepository;
   }
 
+  @Override
   @Transactional
   public Product execute(String productId, String sellerId) {
     Product product =

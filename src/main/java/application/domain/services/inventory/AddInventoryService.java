@@ -4,6 +4,7 @@ import application.domain.exceptions.UnauthorizedOperationException;
 import application.domain.models.InventoryItem;
 import application.domain.models.Product;
 import application.domain.models.Warehouse;
+import application.domain.ports.in.AddInventoryUseCase;
 import application.domain.ports.out.InventoryRepositoryPort;
 import application.domain.ports.out.ProductRepositoryPort;
 import application.domain.ports.out.WarehouseRepositoryPort;
@@ -11,7 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-public class AddInventoryService {
+public class AddInventoryService implements AddInventoryUseCase {
   private final InventoryRepositoryPort inventoryRepository;
   private final ProductRepositoryPort productRepository;
   private final WarehouseRepositoryPort warehouseRepository;
@@ -25,6 +26,7 @@ public class AddInventoryService {
     this.warehouseRepository = warehouseRepository;
   }
 
+  @Override
   @Transactional
   public InventoryItem execute(
       String productId, String warehouseId, int quantity, String sellerId) {

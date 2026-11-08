@@ -2,12 +2,13 @@ package application.domain.services.user;
 
 import application.domain.exceptions.InvalidCredentialsException;
 import application.domain.models.User;
+import application.domain.ports.in.LoginUseCase;
 import application.domain.ports.out.UserRepositoryPort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
-public class LoginService {
+public class LoginService implements LoginUseCase {
   private final UserRepositoryPort userRepository;
   private final PasswordEncoder passwordEncoder;
 
@@ -16,6 +17,7 @@ public class LoginService {
     this.passwordEncoder = passwordEncoder;
   }
 
+  @Override
   public User authenticate(String email, String rawPassword) {
     User user = userRepository.findByEmail(email).orElseThrow(InvalidCredentialsException::new);
     if (!user.isActive()) throw new InvalidCredentialsException();

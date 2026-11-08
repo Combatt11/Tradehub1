@@ -56,6 +56,10 @@ public class User {
     this.status = Status.ACTIVE;
   }
 
+  public void deactivate() {
+    this.status = Status.INACTIVE;
+  }
+
   public void changePassword(String newPasswordHash) {
     this.passwordHash = Objects.requireNonNull(newPasswordHash);
   }

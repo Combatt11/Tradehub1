@@ -3,13 +3,13 @@ package application.adapters.rest.controllers;
 import application.adapters.rest.dto.AddToCartRequest;
 import application.domain.models.Buyer;
 import application.domain.models.Order;
+import application.domain.ports.in.AddItemToCartUseCase;
+import application.domain.ports.in.ClearCartUseCase;
+import application.domain.ports.in.ConfirmPaymentUseCase;
+import application.domain.ports.in.GetBuyerOrdersUseCase;
+import application.domain.ports.in.GetCartUseCase;
+import application.domain.ports.in.SubmitOrderFromCartUseCase;
 import application.domain.ports.out.BuyerRepositoryPort;
-import application.domain.ports.out.OrderRepositoryPort;
-import application.domain.services.order.AddItemToCartService;
-import application.domain.services.order.ClearCartService;
-import application.domain.services.order.ConfirmPaymentService;
-import application.domain.services.order.GetCartService;
-import application.domain.services.order.SubmitOrderFromCartService;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Map;
@@ -22,29 +22,29 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/buyer")
 public class BuyerController {
 
-  private final GetCartService getCartService;
-  private final AddItemToCartService addItemToCartService;
-  private final ClearCartService clearCartService;
-  private final SubmitOrderFromCartService submitOrderFromCartService;
-  private final ConfirmPaymentService confirmPaymentService;
+  private final GetCartUseCase getCartUseCase;
+  private final AddItemToCartUseCase addItemToCartUseCase;
+  private final ClearCartUseCase clearCartUseCase;
+  private final SubmitOrderFromCartUseCase submitOrderFromCartUseCase;
+  private final ConfirmPaymentUseCase confirmPaymentUseCase;
+  private final GetBuyerOrdersUseCase getBuyerOrdersUseCase;
   private final BuyerRepositoryPort buyerRepository;
-  private final OrderRepositoryPort orderRepository;
 
   public BuyerController(
-      GetCartService getCartService,
-      AddItemToCartService addItemToCartService,
-      ClearCartService clearCartService,
-      SubmitOrderFromCartService submitOrderFromCartService,
-      ConfirmPaymentService confirmPaymentService,
-      BuyerRepositoryPort buyerRepository,
-      OrderRepositoryPort orderRepository) {
-    this.getCartService = getCartService;
-    this.addItemToCartService = addItemToCartService;
-    this.clearCartService = clearCartService;
-    this.submitOrderFromCartService = submitOrderFromCartService;
-    this.confirmPaymentService = confirmPaymentService;
+      GetCartUseCase getCartUseCase,
+      AddItemToCartUseCase addItemToCartUseCase,
+      ClearCartUseCase clearCartUseCase,
+      SubmitOrderFromCartUseCase submitOrderFromCartUseCase,
+      ConfirmPaymentUseCase confirmPaymentUseCase,
+      GetBuyerOrdersUseCase getBuyerOrdersUseCase,
+      BuyerRepositoryPort buyerRepository) {
+    this.getCartUseCase = getCartUseCase;
+    this.addItemToCartUseCase = addItemToCartUseCase;
+    this.clearCartUseCase = clearCartUseCase;
+    this.submitOrderFromCartUseCase = submitOrderFromCartUseCase;
+    this.confirmPaymentUseCase = confirmPaymentUseCase;
+    this.getBuyerOrdersUseCase = getBuyerOrdersUseCase;
     this.buyerRepository = buyerRepository;
-    this.orderRepository = orderRepository;
   }
 
   private String resolveBuyerId(Authentication auth) {
@@ -58,7 +58,7 @@ public class BuyerController {
   @GetMapping("/cart")
   public ResponseEntity<?> getCart(Authentication auth) {
     String buyerId = resolveBuyerId(auth);
-    Order cart = getCartService.getOrCreateCart(buyerId);
+    Order cart = getCartUseCase.getOrCreateCart(buyerId);
     return ResponseEntity.ok(toOrderMap(cart));
   }
 
@@ -67,7 +67,7 @@ public class BuyerController {
       @Valid @RequestBody AddToCartRequest req, Authentication auth) {
     String buyerId = resolveBuyerId(auth);
     Order cart =
-        addItemToCartService.addItem(
+        addItemToCartUseCase.addItem(
             buyerId, req.getProductId(), req.getQuantity(), req.getWarehouseId());
     return ResponseEntity.ok(toOrderMap(cart));
   }
@@ -75,14 +75,14 @@ public class BuyerController {
   @DeleteMapping("/cart")
   public ResponseEntity<?> clearCart(Authentication auth) {
     String buyerId = resolveBuyerId(auth);
-    Order cart = clearCartService.clearCart(buyerId);
+    Order cart = clearCartUseCase.clearCart(buyerId);
     return ResponseEntity.ok(toOrderMap(cart));
   }
 
   @PostMapping("/cart/submit")
   public ResponseEntity<?> submitOrder(@RequestBody Map<String, String> body, Authentication auth) {
     String buyerId = resolveBuyerId(auth);
-    Order order = submitOrderFromCartService.submitOrder(buyerId, body.get("shippingAddress"));
+    Order order = submitOrderFromCartUseCase.submitOrder(buyerId, body.get("shippingAddress"));
     return ResponseEntity.ok(toOrderMap(order));
   }
 
@@ -91,7 +91,7 @@ public class BuyerController {
       @PathVariable String orderId, @RequestBody Map<String, String> body, Authentication auth) {
     String buyerId = resolveBuyerId(auth);
     Order order =
-        confirmPaymentService.confirmPayment(orderId, buyerId, body.get("paymentReference"));
+        confirmPaymentUseCase.confirmPayment(orderId, buyerId, body.get("paymentReference"));
     return ResponseEntity.ok(toOrderMap(order));
   }
 
@@ -99,7 +99,7 @@ public class BuyerController {
   public ResponseEntity<?> myOrders(Authentication auth) {
     String buyerId = resolveBuyerId(auth);
     List<Map<String, Object>> orders =
-        orderRepository.findByBuyerId(buyerId).stream()
+        getBuyerOrdersUseCase.getOrders(buyerId).stream()
             .map(this::toOrderMap)
             .collect(Collectors.toList());
     return ResponseEntity.ok(orders);

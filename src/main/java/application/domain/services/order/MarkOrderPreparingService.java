@@ -2,12 +2,13 @@ package application.domain.services.order;
 
 import application.domain.exceptions.UnauthorizedOperationException;
 import application.domain.models.Order;
+import application.domain.ports.in.MarkOrderPreparingUseCase;
 import application.domain.ports.out.OrderRepositoryPort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-public class MarkOrderPreparingService {
+public class MarkOrderPreparingService implements MarkOrderPreparingUseCase {
 
   private final OrderRepositoryPort orderRepository;
 
@@ -15,6 +16,7 @@ public class MarkOrderPreparingService {
     this.orderRepository = orderRepository;
   }
 
+  @Override
   @Transactional
   public Order markPreparing(String orderId) {
     Order order = find(orderId);

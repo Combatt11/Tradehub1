@@ -3,6 +3,7 @@ package application.domain.services.user;
 import application.domain.exceptions.DuplicateEmailException;
 import application.domain.models.Buyer;
 import application.domain.models.User;
+import application.domain.ports.in.RegisterBuyerUseCase;
 import application.domain.ports.out.BuyerRepositoryPort;
 import application.domain.ports.out.UserRepositoryPort;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -10,7 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-public class RegisterBuyerService {
+public class RegisterBuyerService implements RegisterBuyerUseCase {
   private final UserRepositoryPort userRepository;
   private final BuyerRepositoryPort buyerRepository;
   private final PasswordEncoder passwordEncoder;
@@ -24,6 +25,7 @@ public class RegisterBuyerService {
     this.passwordEncoder = passwordEncoder;
   }
 
+  @Override
   @Transactional
   public User execute(
       String fullName,
