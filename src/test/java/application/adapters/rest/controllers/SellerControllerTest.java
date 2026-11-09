@@ -136,6 +136,39 @@ class SellerControllerTest {
   }
 
   @Test
+  @DisplayName("POST /api/seller/products returns 400 when the product type is unknown")
+  void createProductReturns400OnInvalidType() throws Exception {
+    givenSellerProfile();
+
+    mockMvc
+        .perform(
+            asSeller(
+                post("/api/seller/products")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(
+                        """
+                        {"name":"Laptop","type":"UNKNOWN","price":100.00}
+                        """)))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.error").exists());
+
+    verify(createProductUseCase, never()).execute(anyString(), any(), any(), any(), any(), any());
+  }
+
+  @Test
+  @DisplayName("POST /api/seller/products returns 400 on a malformed JSON body")
+  void createProductReturns400OnMalformedJson() throws Exception {
+    mockMvc
+        .perform(
+            asSeller(
+                post("/api/seller/products")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{not-json")))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.error").value("Malformed request body"));
+  }
+
+  @Test
   @DisplayName("POST /api/seller/products returns 404 when the seller profile is missing")
   void createProductReturns404WhenProfileMissing() throws Exception {
     when(sellerRepository.findByUserId(USER_ID)).thenReturn(Optional.empty());
@@ -178,6 +211,20 @@ class SellerControllerTest {
         .perform(asSeller(post("/api/seller/products/product-1/publish")))
         .andExpect(status().isNotFound())
         .andExpect(jsonPath("$.error").value("Product not found: product-1"));
+  }
+
+  @Test
+  @DisplayName("POST /api/seller/products/{id}/publish returns 403 when the seller does not own it")
+  void publishReturns403WhenNotOwner() throws Exception {
+    givenSellerProfile();
+    when(publishProductUseCase.execute(anyString(), anyString()))
+        .thenThrow(new ProductOwnershipException("product-1", SELLER_ID));
+
+    mockMvc
+        .perform(asSeller(post("/api/seller/products/product-1/publish")))
+        .andExpect(status().isForbidden())
+        .andExpect(
+            jsonPath("$.error").value("Product product-1 does not belong to seller: " + SELLER_ID));
   }
 
   @Test
@@ -238,6 +285,26 @@ class SellerControllerTest {
         .andExpect(status().isForbidden())
         .andExpect(
             jsonPath("$.error").value("Product product-1 does not belong to seller: " + SELLER_ID));
+  }
+
+  @Test
+  @DisplayName("POST /api/seller/inventory returns 404 when the product is missing")
+  void addInventoryReturns404WhenProductMissing() throws Exception {
+    givenSellerProfile();
+    when(addInventoryUseCase.execute(anyString(), anyString(), anyInt(), anyString()))
+        .thenThrow(new ProductNotFoundException("product-404"));
+
+    mockMvc
+        .perform(
+            asSeller(
+                post("/api/seller/inventory")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(
+                        """
+                        {"productId":"product-404","warehouseId":"wh-1","quantity":5}
+                        """)))
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.error").value("Product not found: product-404"));
   }
 
   @Test
