@@ -6,7 +6,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import application.adapters.persistence.jpa.entities.ProductJpaEntity;
 import application.adapters.persistence.jpa.mappers.ProductJpaMapper;
 import application.adapters.persistence.jpa.repositories.SpringDataJpaProductRepository;
-import application.domain.models.Product;
+import application.domain.entities.Product;
 import java.math.BigDecimal;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

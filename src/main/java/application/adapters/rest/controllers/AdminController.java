@@ -1,12 +1,12 @@
 package application.adapters.rest.controllers;
 
 import application.adapters.rest.dto.RegisterSellerRequest;
-import application.domain.models.Seller;
-import application.domain.models.Warehouse;
-import application.domain.ports.in.ApproveSellerUseCase;
-import application.domain.ports.in.RegisterMarketplaceWarehouseUseCase;
-import application.domain.ports.in.RegisterSellerUseCase;
-import application.domain.ports.in.RegisterSellerWarehouseUseCase;
+import application.domain.entities.Seller;
+import application.domain.entities.Warehouse;
+import application.domain.usecases.ports.ApproveSellerUseCase;
+import application.domain.usecases.ports.RegisterMarketplaceWarehouseUseCase;
+import application.domain.usecases.ports.RegisterSellerUseCase;
+import application.domain.usecases.ports.RegisterSellerWarehouseUseCase;
 import jakarta.validation.Valid;
 import java.util.Map;
 import org.springframework.http.HttpStatus;

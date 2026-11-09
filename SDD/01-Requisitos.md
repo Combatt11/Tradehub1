@@ -92,15 +92,15 @@
 
 | ID | Categoría | Requisito | Evidencia |
 |----|-----------|-----------|-----------|
-| RNF-01 | Seguridad | API stateless autenticada con JWT en cada petición. | `JwtAuthFilter`, `JwtProvider`, `SecurityConfig` |
-| RNF-02 | Seguridad | Autorización por rol a nivel de ruta. | `SecurityConfig` |
+| RNF-01 | Seguridad | API stateless autenticada con JWT en cada petición. | `JwtAuthFilter`, `JwtProvider`, `frameworks/config/SecurityConfig` |
+| RNF-02 | Seguridad | Autorización por rol a nivel de ruta. | `frameworks/config/SecurityConfig` |
 | RNF-03 | Seguridad | Contraseñas con BCrypt. | `PasswordEncoder` |
 | RNF-04 | Seguridad | Las reglas de propiedad se validan en el dominio, no solo en el controlador. | `Product.ensureOwnedBy`, `Order.ensureOwnedBy` |
-| RNF-05 | Arquitectura | El dominio no depende de frameworks de persistencia ni de HTTP. | `domain/models`, `domain/ports` |
+| RNF-05 | Arquitectura | El dominio no depende de frameworks de persistencia ni de HTTP. | `domain/entities`, `domain/usecases`, `domain/ports/out` |
 | RNF-06 | Arquitectura | Las dependencias apuntan hacia el dominio. | Puertos + inyección por constructor |
 | RNF-07 | Mantenibilidad | Un caso de uso = una interfaz = una implementación. | 24 puertos de entrada atómicos |
 | RNF-08 | Mantenibilidad | Cada excepción representa una única causa de fallo. | `domain/exceptions` |
-| RNF-09 | Testabilidad | Los servicios se prueban con mocks de los puertos de salida. | `src/test/java/application/domain/services` |
+| RNF-09 | Testabilidad | Los servicios se prueban con mocks de los puertos de salida. | `src/test/java/application/domain/usecases` |
 | RNF-10 | Calidad | Cobertura de líneas ≥ 60 %. | `jacoco-maven-plugin` |
 | RNF-11 | Calidad | Formato uniforme Google Java Format. | `spotless-maven-plugin` |
 | RNF-12 | Calidad | Java ≥ 17 y Maven ≥ 3.8. | `maven-enforcer-plugin` |

@@ -7,10 +7,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import application.adapters.rest.GlobalExceptionHandler;
 import application.adapters.security.JwtProvider;
-import application.adapters.security.SecurityConfig;
-import application.domain.models.Product;
-import application.domain.ports.in.BrowseCatalogUseCase;
-import application.domain.ports.in.GetProductUseCase;
+import application.domain.entities.Product;
+import application.domain.usecases.ports.BrowseCatalogUseCase;
+import application.domain.usecases.ports.GetProductUseCase;
+import application.frameworks.config.SecurityConfig;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;

@@ -15,17 +15,17 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import application.adapters.rest.GlobalExceptionHandler;
 import application.adapters.security.JwtProvider;
-import application.adapters.security.SecurityConfig;
+import application.domain.entities.InventoryItem;
+import application.domain.entities.Product;
+import application.domain.entities.Seller;
 import application.domain.exceptions.ProductNotFoundException;
 import application.domain.exceptions.ProductOwnershipException;
-import application.domain.models.InventoryItem;
-import application.domain.models.Product;
-import application.domain.models.Seller;
-import application.domain.ports.in.AddInventoryUseCase;
-import application.domain.ports.in.CreateProductUseCase;
-import application.domain.ports.in.GetSellerProductsUseCase;
-import application.domain.ports.in.PublishProductUseCase;
 import application.domain.ports.out.SellerRepositoryPort;
+import application.domain.usecases.ports.AddInventoryUseCase;
+import application.domain.usecases.ports.CreateProductUseCase;
+import application.domain.usecases.ports.GetSellerProductsUseCase;
+import application.domain.usecases.ports.PublishProductUseCase;
+import application.frameworks.config.SecurityConfig;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;

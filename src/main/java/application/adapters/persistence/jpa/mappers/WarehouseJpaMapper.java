@@ -1,7 +1,7 @@
 package application.adapters.persistence.jpa.mappers;
 
 import application.adapters.persistence.jpa.entities.WarehouseJpaEntity;
-import application.domain.models.Warehouse;
+import application.domain.entities.Warehouse;
 import org.springframework.stereotype.Component;
 
 @Component

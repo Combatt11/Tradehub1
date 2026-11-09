@@ -2,7 +2,7 @@ package application.adapters.persistence.jpa;
 
 import application.adapters.persistence.jpa.mappers.BuyerJpaMapper;
 import application.adapters.persistence.jpa.repositories.SpringDataJpaBuyerRepository;
-import application.domain.models.Buyer;
+import application.domain.entities.Buyer;
 import application.domain.ports.out.BuyerRepositoryPort;
 import java.util.List;
 import java.util.Optional;

@@ -2,7 +2,7 @@ package application.adapters.persistence.jpa;
 
 import application.adapters.persistence.jpa.mappers.InventoryJpaMapper;
 import application.adapters.persistence.jpa.repositories.SpringDataJpaInventoryRepository;
-import application.domain.models.InventoryItem;
+import application.domain.entities.InventoryItem;
 import application.domain.ports.out.InventoryRepositoryPort;
 import java.util.List;
 import java.util.Optional;

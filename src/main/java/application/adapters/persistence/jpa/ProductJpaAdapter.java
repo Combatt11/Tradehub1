@@ -2,7 +2,7 @@ package application.adapters.persistence.jpa;
 
 import application.adapters.persistence.jpa.mappers.ProductJpaMapper;
 import application.adapters.persistence.jpa.repositories.SpringDataJpaProductRepository;
-import application.domain.models.Product;
+import application.domain.entities.Product;
 import application.domain.ports.out.ProductRepositoryPort;
 import java.util.List;
 import java.util.Optional;

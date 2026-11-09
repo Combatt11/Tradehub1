@@ -1,7 +1,7 @@
 package application.adapters.persistence.jpa.mappers;
 
 import application.adapters.persistence.jpa.entities.BuyerJpaEntity;
-import application.domain.models.Buyer;
+import application.domain.entities.Buyer;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;

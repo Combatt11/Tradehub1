@@ -2,7 +2,7 @@ package application.adapters.persistence.jpa;
 
 import application.adapters.persistence.jpa.mappers.OrderJpaMapper;
 import application.adapters.persistence.jpa.repositories.SpringDataJpaOrderRepository;
-import application.domain.models.Order;
+import application.domain.entities.Order;
 import application.domain.ports.out.OrderRepositoryPort;
 import java.util.List;
 import java.util.Optional;

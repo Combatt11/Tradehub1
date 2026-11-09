@@ -1,8 +1,8 @@
 package application.adapters.rest.controllers;
 
-import application.domain.models.Product;
-import application.domain.ports.in.BrowseCatalogUseCase;
-import application.domain.ports.in.GetProductUseCase;
+import application.domain.entities.Product;
+import application.domain.usecases.ports.BrowseCatalogUseCase;
+import application.domain.usecases.ports.GetProductUseCase;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;

@@ -2,7 +2,7 @@ package application.adapters.persistence.jpa;
 
 import application.adapters.persistence.jpa.mappers.UserJpaMapper;
 import application.adapters.persistence.jpa.repositories.SpringDataJpaUserRepository;
-import application.domain.models.User;
+import application.domain.entities.User;
 import application.domain.ports.out.UserRepositoryPort;
 import java.util.List;
 import java.util.Optional;

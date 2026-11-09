@@ -6,7 +6,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import application.adapters.persistence.jpa.entities.SellerJpaEntity;
 import application.adapters.persistence.jpa.mappers.SellerJpaMapper;
 import application.adapters.persistence.jpa.repositories.SpringDataJpaSellerRepository;
-import application.domain.models.Seller;
+import application.domain.entities.Seller;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

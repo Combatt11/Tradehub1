@@ -2,7 +2,7 @@ package application.adapters.persistence.jpa;
 
 import application.adapters.persistence.jpa.mappers.WarehouseJpaMapper;
 import application.adapters.persistence.jpa.repositories.SpringDataJpaWarehouseRepository;
-import application.domain.models.Warehouse;
+import application.domain.entities.Warehouse;
 import application.domain.ports.out.WarehouseRepositoryPort;
 import java.util.List;
 import java.util.Optional;

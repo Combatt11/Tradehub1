@@ -1,6 +1,6 @@
 package application.domain.ports.out;
 
-import application.domain.models.Warehouse;
+import application.domain.entities.Warehouse;
 import java.util.List;
 import java.util.Optional;
 

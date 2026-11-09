@@ -1,9 +1,9 @@
 package application.adapters.rest.controllers;
 
-import application.domain.models.Order;
-import application.domain.ports.in.MarkOrderDeliveredUseCase;
-import application.domain.ports.in.MarkOrderDispatchedUseCase;
-import application.domain.ports.in.MarkOrderPreparingUseCase;
+import application.domain.entities.Order;
+import application.domain.usecases.ports.MarkOrderDeliveredUseCase;
+import application.domain.usecases.ports.MarkOrderDispatchedUseCase;
+import application.domain.usecases.ports.MarkOrderPreparingUseCase;
 import java.util.Map;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

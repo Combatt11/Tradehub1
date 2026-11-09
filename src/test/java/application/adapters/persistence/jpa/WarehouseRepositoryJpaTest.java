@@ -6,7 +6,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import application.adapters.persistence.jpa.entities.WarehouseJpaEntity;
 import application.adapters.persistence.jpa.mappers.WarehouseJpaMapper;
 import application.adapters.persistence.jpa.repositories.SpringDataJpaWarehouseRepository;
-import application.domain.models.Warehouse;
+import application.domain.entities.Warehouse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

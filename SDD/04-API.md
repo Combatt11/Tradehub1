@@ -512,7 +512,7 @@ Response típica:
 | `HttpMessageNotReadableException` | 400 | JSON malformado o tipo incorrecto. |
 | `Exception` | 500 | Error inesperado; respuesta genérica. |
 | Sin token / token inválido | 401 | `AuthenticationEntryPoint` de Spring Security. |
-| Rol incorrecto | 403 | `SecurityConfig`. |
+| Rol incorrecto | 403 | `frameworks/config/SecurityConfig`. |
 
 ### Familias de excepciones
 

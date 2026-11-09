@@ -1,7 +1,7 @@
 package application.adapters.persistence.jpa.mappers;
 
 import application.adapters.persistence.jpa.entities.SellerJpaEntity;
-import application.domain.models.Seller;
+import application.domain.entities.Seller;
 import org.springframework.stereotype.Component;
 
 @Component

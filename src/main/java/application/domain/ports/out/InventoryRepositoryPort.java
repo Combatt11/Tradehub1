@@ -1,6 +1,6 @@
 package application.domain.ports.out;
 
-import application.domain.models.InventoryItem;
+import application.domain.entities.InventoryItem;
 import java.util.List;
 import java.util.Optional;
 

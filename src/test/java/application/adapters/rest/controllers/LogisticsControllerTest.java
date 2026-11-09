@@ -9,12 +9,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import application.adapters.rest.GlobalExceptionHandler;
 import application.adapters.security.JwtProvider;
-import application.adapters.security.SecurityConfig;
+import application.domain.entities.Order;
 import application.domain.exceptions.OrderNotFoundException;
-import application.domain.models.Order;
-import application.domain.ports.in.MarkOrderDeliveredUseCase;
-import application.domain.ports.in.MarkOrderDispatchedUseCase;
-import application.domain.ports.in.MarkOrderPreparingUseCase;
+import application.domain.usecases.ports.MarkOrderDeliveredUseCase;
+import application.domain.usecases.ports.MarkOrderDispatchedUseCase;
+import application.domain.usecases.ports.MarkOrderPreparingUseCase;
+import application.frameworks.config.SecurityConfig;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;

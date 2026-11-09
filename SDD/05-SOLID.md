@@ -215,7 +215,7 @@ public ResponseEntity<?> addToCart(
 | `GlobalExceptionHandler` | Traducir excepciones a HTTP. |
 | `JwtAuthFilter` | Autenticar la petición a partir del token. |
 | `JwtProvider` | Firmar y validar tokens. |
-| `SecurityConfig` | Definir reglas de acceso por ruta y rol. |
+| `SecurityConfig` (en `frameworks/config`) | Definir reglas de acceso por ruta y rol. |
 | `Product` | Proteger las invariantes del producto. |
 | `Order` | Proteger la máquina de estados de la orden. |
 | `InventoryItem` | Proteger las cantidades de inventario. |
@@ -233,8 +233,8 @@ public ResponseEntity<?> addToCart(
 Agregar una operación nueva sigue un patrón aditivo:
 
 ```text
-1. Nueva interfaz en domain/ports/in (por ejemplo, CancelOrderUseCase).
-2. Nueva implementación en domain/services/order (CancelOrderService).
+1. Nueva interfaz en domain/usecases/ports (por ejemplo, CancelOrderUseCase).
+2. Nueva implementación en domain/usecases (CancelOrderService).
 3. Nuevo endpoint en el controlador correspondiente.
 ```
 
@@ -466,7 +466,7 @@ beneficio en este alcance.
 | Principio | Evidencia en código | Prueba / verificación |
 |-----------|---------------------|-----------------------|
 | SRP | `domain/exceptions/*`, `Product`, `Order`, `InventoryItem`, `EmailUniquenessValidator` | Tests unitarios de servicios y modelos; `mvn test` |
-| OCP | `domain/ports/in/*`, `domain/ports/out/*`, adaptadores | Nuevos casos de uso sin modificar los existentes |
+| OCP | `domain/usecases/ports/*`, `domain/ports/out/*`, adaptadores | Nuevos casos de uso sin modificar los existentes |
 | LSP | `*JpaAdapter implements *RepositoryPort`, `*Service implements *UseCase`, jerarquía de excepciones | Mocks de puertos; handler polimórfico |
 | ISP | 24 puertos atómicos; controladores con dependencias mínimas | Constructores de controladores; tests MVC |
 | DIP | Puertos de salida + inyección por constructor; dominio sin JPA | `domain` no importa `adapters` |

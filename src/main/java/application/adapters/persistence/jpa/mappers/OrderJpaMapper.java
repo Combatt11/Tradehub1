@@ -1,8 +1,8 @@
 package application.adapters.persistence.jpa.mappers;
 
 import application.adapters.persistence.jpa.entities.OrderJpaEntity;
-import application.domain.models.Order;
-import application.domain.models.OrderItem;
+import application.domain.entities.Order;
+import application.domain.entities.OrderItem;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;

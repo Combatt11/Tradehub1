@@ -1,7 +1,7 @@
 package application.adapters.persistence.jpa.mappers;
 
 import application.adapters.persistence.jpa.entities.InventoryItemJpaEntity;
-import application.domain.models.InventoryItem;
+import application.domain.entities.InventoryItem;
 import org.springframework.stereotype.Component;
 
 @Component

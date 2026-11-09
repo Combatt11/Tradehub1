@@ -1,6 +1,6 @@
 package application.domain.ports.out;
 
-import application.domain.models.Order;
+import application.domain.entities.Order;
 import java.util.List;
 import java.util.Optional;
 

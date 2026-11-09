@@ -2,9 +2,11 @@
 
 ## 1. Visión general
 
-TradeHub usa **Arquitectura Hexagonal**, también conocida como **Ports & Adapters**. La idea
-central es aislar el dominio de todo detalle tecnológico. El dominio define qué necesita mediante
-**puertos**; los adaptadores proporcionan las implementaciones concretas (HTTP, JPA, JWT).
+TradeHub usa **Arquitectura Hexagonal**, también conocida como **Ports & Adapters**, y organiza sus
+paquetes siguiendo **Clean Architecture**. La idea central es aislar el dominio de todo detalle
+tecnológico. El dominio define qué necesita mediante **puertos**; los adaptadores proporcionan las
+implementaciones concretas (HTTP, JPA, JWT). La correspondencia entre ambas visiones se detalla en
+[06 - Clean Architecture](06-Clean-Architecture.md).
 
 ```text
                     ┌─────────────────────────────────────┐
@@ -29,7 +31,7 @@ central es aislar el dominio de todo detalle tecnológico. El dominio define qu�
 Las dependencias siempre apuntan **hacia el dominio**:
 
 ```text
-adapters/rest ───────▶ domain/ports/in ───────▶ domain/services
+adapters/rest ───▶ domain/usecases/ports ───▶ domain/usecases
                                                      │
                                                      ▼
                                               domain/ports/out
@@ -51,7 +53,7 @@ flowchart LR
   end
 
   subgraph Entrada["Adaptadores de entrada"]
-    SEC["SecurityConfig + JwtAuthFilter + JwtProvider"]
+    SEC["SecurityConfig (frameworks/config) + JwtAuthFilter + JwtProvider"]
     REST["REST Controllers"]
     DTO["DTOs + Bean Validation"]
     HANDLER["GlobalExceptionHandler"]
@@ -121,7 +123,7 @@ flowchart LR
 src/main/java/application/
 ├── TradeHubApplication.java
 ├── domain/
-│   ├── models/                  # Entidades y reglas de negocio
+│   ├── entities/                # Entidades y reglas de negocio
 │   │   ├── User.java
 │   │   ├── Buyer.java
 │   │   ├── Seller.java
@@ -130,24 +132,21 @@ src/main/java/application/
 │   │   ├── Warehouse.java
 │   │   ├── Order.java
 │   │   └── OrderItem.java
+│   ├── usecases/                # Capa de casos de uso
+│   │   ├── ports/               # 24 puertos de entrada (interfaces UseCase)
+│   │   └── *Service.java        # Implementaciones de los casos de uso
 │   ├── ports/
-│   │   ├── in/                  # 24 casos de uso atómicos
 │   │   └── out/                 # 7 repositorios abstractos
-│   ├── services/                # Implementaciones de los casos de uso
-│   │   ├── inventory/
-│   │   ├── order/
-│   │   ├── product/
-│   │   ├── seller/
-│   │   ├── user/
-│   │   └── warehouse/
 │   └── exceptions/              # Jerarquía de errores de dominio
-├── adapters/
+├── adapters/                    # Interface Adapters
 │   ├── persistence/jpa/         # Adaptadores, entidades, mappers y repos Spring Data
 │   ├── rest/
 │   │   ├── controllers/         # 6 controladores
 │   │   ├── dto/                 # Contratos de entrada
 │   │   └── GlobalExceptionHandler.java
-│   └── security/                # JWT y configuración de Spring Security
+│   └── security/                # JwtAuthFilter y JwtProvider
+├── frameworks/                  # Frameworks & Drivers
+│   └── config/                  # SecurityConfig (configuración de Spring)
 └── infrastructure/
     └── seed/                    # Datos iniciales
 ```
@@ -156,13 +155,14 @@ src/main/java/application/
 
 | Capa | Responsabilidad | No debe hacer |
 |------|-----------------|---------------|
-| **Modelo de dominio** | Proteger invariantes, modelar estados y transiciones, lanzar excepciones específicas. | Acceder a base de datos, HTTP o Spring. |
-| **Puertos de entrada** | Declarar operaciones atómicas del negocio. | Contener lógica. |
-| **Servicios de aplicación** | Orquestar entidades y puertos de salida; delimitar transacciones. | Duplicar reglas que ya valida el modelo. |
-| **Puertos de salida** | Declarar necesidades de persistencia. | Contener SQL o detalles de JPA. |
+| **Entidades** (`domain/entities`) | Proteger invariantes, modelar estados y transiciones, lanzar excepciones específicas. | Acceder a base de datos, HTTP o Spring. |
+| **Puertos de entrada** (`domain/usecases/ports`) | Declarar operaciones atómicas del negocio. | Contener lógica. |
+| **Casos de uso** (`domain/usecases`) | Orquestar entidades y puertos de salida; delimitar transacciones. | Duplicar reglas que ya valida el modelo. |
+| **Puertos de salida** (`domain/ports/out`) | Declarar necesidades de persistencia. | Contener SQL o detalles de JPA. |
 | **Adaptadores REST** | Traducir HTTP ↔ dominio, resolver identidad y mapear respuestas. | Decidir reglas de negocio. |
 | **Adaptadores JPA** | Traducir dominio ↔ entidades y ejecutar consultas. | Filtrar reglas de negocio. |
 | **Seguridad** | Autenticar, validar JWT y autorizar por rol. | Decidir si un recurso pertenece a un usuario (eso es dominio). |
+| **Frameworks & Drivers** (`frameworks/config`) | Configurar Spring Security y el resto de infraestructura del framework. | Implementar reglas de negocio. |
 | **Infraestructura** | Configuración, perfiles, seed y despliegue. | Implementar casos de uso. |
 
 ## 5. Flujo de una petición
@@ -240,7 +240,7 @@ Los controladores siguen el mismo patrón:
 ### 6.2 Seguridad
 
 - `JwtAuthFilter` intercepta cada petición, valida el token y construye el `Authentication`.
-- `SecurityConfig` define rutas públicas y restringe el resto por rol.
+- `SecurityConfig` (en `application.frameworks.config`) define rutas públicas y restringe el resto por rol.
 - `JwtProvider` firma y valida tokens con `jjwt`.
 - La autorización por rol responde **403**; la falta de token responde **401**.
 

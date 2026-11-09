@@ -1,6 +1,6 @@
 package application.infrastructure.seed;
 
-import application.domain.models.*;
+import application.domain.entities.*;
 import application.domain.ports.out.*;
 import java.math.BigDecimal;
 import org.springframework.boot.CommandLineRunner;

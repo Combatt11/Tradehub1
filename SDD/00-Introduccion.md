@@ -72,7 +72,7 @@ notificaciones, integración con transportistas y panel de administración web.
 ## 6. Convenciones
 
 - Los nombres de clases y métodos están en inglés; la documentación está en español.
-- Las reglas de negocio viven en `domain/models` y se expresan con excepciones de dominio.
+- Las reglas de negocio viven en `domain/entities` y se expresan con excepciones de dominio.
 - Los controladores no contienen reglas de negocio: resuelven identidad, invocan un caso de uso y
   transforman el resultado a JSON.
 - Cada caso de uso tiene una única interfaz de entrada y una única implementación.

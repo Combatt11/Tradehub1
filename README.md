@@ -3,13 +3,13 @@
 ![CI](https://github.com/juanestevan-tdea/tradehub/actions/workflows/ci.yml/badge.svg)
 
 ## 📊 Project Status & Metrics
-- **Architecture:** Hexagonal (Ports & Adapters) with strict SOLID compliance.
+- **Architecture:** Clean Architecture with Hexagonal (Ports & Adapters) boundaries and strict SOLID compliance.
 - **Test Suite:** 182 unit and integration tests passing.
 - **Test Coverage:** 90.95% line coverage (enforced gate at 60%).
 - **CI/CD:** GitHub Actions pipeline running on every push.
 - **DevOps:** Fully dockerized (App + MySQL 8) with multi-stage builds.
 
-Marketplace platform built with **Spring Boot 3**, **Hexagonal Architecture** (Ports & Adapters), JWT security and Docker.
+Marketplace platform built with **Spring Boot 3**, **Clean Architecture** and **Hexagonal Architecture** (Ports & Adapters), JWT security and Docker.
 
 This project follows the same structure and conventions as the professor's *bank* project, adapted to a marketplace functional specification.
 
@@ -18,19 +18,21 @@ This project follows the same structure and conventions as the professor's *bank
 ```
 application/
 ├── domain/
-│   ├── models/          # Domain entities (User, Buyer, Seller, Product, Order, ...)
-│   ├── ports/
-│   │   ├── in/          # Input ports: use-case interfaces (driving)
-│   │   └── out/         # Output ports: repository interfaces (driven)
-│   ├── services/        # Use-case implementations
-│   └── exceptions/
-├── adapters/
+│   ├── entities/        # Entities: domain models and business rules
+│   ├── usecases/        # Use Cases: services + input ports (ports/)
+│   ├── ports/out/       # Output ports: repository interfaces (driven)
+│   └── exceptions/      # Domain exception hierarchy
+├── adapters/            # Interface Adapters
 │   ├── persistence/jpa/ # JPA adapters + entities + mappers + Spring Data repos
 │   ├── rest/            # REST controllers + DTOs
-│   └── security/        # JWT + Spring Security
+│   └── security/        # JWT filter + provider
+├── frameworks/          # Frameworks & Drivers
+│   └── config/          # Spring configuration (SecurityConfig)
 └── infrastructure/
     └── seed/            # Database seeder
 ```
+
+The dependency rule points inwards: `frameworks → adapters → use cases → entities`.
 
 ## Software Design Document (SDD)
 
@@ -44,6 +46,7 @@ The complete design documentation lives in the [`SDD/`](SDD/) folder:
 | [03 - Domain](SDD/03-Dominio.md) | Entities, invariants, state machines and exceptions |
 | [04 - API](SDD/04-API.md) | Endpoints, roles, examples and error contract |
 | [05 - SOLID](SDD/05-SOLID.md) | SRP, OCP, LSP, ISP and DIP with real code |
+| [06 - Clean Architecture](SDD/06-Clean-Architecture.md) | The four Clean Architecture layers mapped to project packages |
 
 ## Domains covered
 

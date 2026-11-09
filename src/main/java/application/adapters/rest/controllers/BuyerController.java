@@ -1,17 +1,17 @@
 package application.adapters.rest.controllers;
 
 import application.adapters.rest.dto.AddToCartRequest;
+import application.domain.entities.Buyer;
+import application.domain.entities.Order;
 import application.domain.exceptions.BuyerNotFoundException;
-import application.domain.models.Buyer;
-import application.domain.models.Order;
-import application.domain.ports.in.AddItemToCartUseCase;
-import application.domain.ports.in.CancelOrderUseCase;
-import application.domain.ports.in.ClearCartUseCase;
-import application.domain.ports.in.ConfirmPaymentUseCase;
-import application.domain.ports.in.GetBuyerOrdersUseCase;
-import application.domain.ports.in.GetCartUseCase;
-import application.domain.ports.in.SubmitOrderFromCartUseCase;
 import application.domain.ports.out.BuyerRepositoryPort;
+import application.domain.usecases.ports.AddItemToCartUseCase;
+import application.domain.usecases.ports.CancelOrderUseCase;
+import application.domain.usecases.ports.ClearCartUseCase;
+import application.domain.usecases.ports.ConfirmPaymentUseCase;
+import application.domain.usecases.ports.GetBuyerOrdersUseCase;
+import application.domain.usecases.ports.GetCartUseCase;
+import application.domain.usecases.ports.SubmitOrderFromCartUseCase;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Map;

@@ -9,12 +9,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import application.adapters.rest.GlobalExceptionHandler;
 import application.adapters.security.JwtProvider;
-import application.adapters.security.SecurityConfig;
+import application.domain.entities.User;
 import application.domain.exceptions.DuplicateEmailException;
 import application.domain.exceptions.InvalidCredentialsException;
-import application.domain.models.User;
-import application.domain.ports.in.LoginUseCase;
-import application.domain.ports.in.RegisterBuyerUseCase;
+import application.domain.usecases.ports.LoginUseCase;
+import application.domain.usecases.ports.RegisterBuyerUseCase;
+import application.frameworks.config.SecurityConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

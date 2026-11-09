@@ -6,7 +6,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import application.adapters.persistence.jpa.entities.InventoryItemJpaEntity;
 import application.adapters.persistence.jpa.mappers.InventoryJpaMapper;
 import application.adapters.persistence.jpa.repositories.SpringDataJpaInventoryRepository;
-import application.domain.models.InventoryItem;
+import application.domain.entities.InventoryItem;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

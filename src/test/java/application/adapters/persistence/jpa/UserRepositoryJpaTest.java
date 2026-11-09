@@ -6,7 +6,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import application.adapters.persistence.jpa.entities.UserJpaEntity;
 import application.adapters.persistence.jpa.mappers.UserJpaMapper;
 import application.adapters.persistence.jpa.repositories.SpringDataJpaUserRepository;
-import application.domain.models.User;
+import application.domain.entities.User;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

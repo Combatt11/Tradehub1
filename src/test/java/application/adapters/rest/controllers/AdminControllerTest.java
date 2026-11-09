@@ -13,14 +13,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import application.adapters.rest.GlobalExceptionHandler;
 import application.adapters.security.JwtProvider;
-import application.adapters.security.SecurityConfig;
+import application.domain.entities.Seller;
+import application.domain.entities.Warehouse;
 import application.domain.exceptions.SellerNotFoundException;
-import application.domain.models.Seller;
-import application.domain.models.Warehouse;
-import application.domain.ports.in.ApproveSellerUseCase;
-import application.domain.ports.in.RegisterMarketplaceWarehouseUseCase;
-import application.domain.ports.in.RegisterSellerUseCase;
-import application.domain.ports.in.RegisterSellerWarehouseUseCase;
+import application.domain.usecases.ports.ApproveSellerUseCase;
+import application.domain.usecases.ports.RegisterMarketplaceWarehouseUseCase;
+import application.domain.usecases.ports.RegisterSellerUseCase;
+import application.domain.usecases.ports.RegisterSellerWarehouseUseCase;
+import application.frameworks.config.SecurityConfig;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
