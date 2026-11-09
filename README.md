@@ -2,6 +2,13 @@
 
 ![CI](https://github.com/juanestevan-tdea/tradehub/actions/workflows/ci.yml/badge.svg)
 
+## 📊 Project Status & Metrics
+- **Architecture:** Hexagonal (Ports & Adapters) with strict SOLID compliance.
+- **Test Suite:** 182 unit and integration tests passing.
+- **Test Coverage:** 90.95% line coverage (enforced gate at 60%).
+- **CI/CD:** GitHub Actions pipeline running on every push.
+- **DevOps:** Fully dockerized (App + MySQL 8) with multi-stage builds.
+
 Marketplace platform built with **Spring Boot 3**, **Hexagonal Architecture** (Ports & Adapters), JWT security and Docker.
 
 This project follows the same structure and conventions as the professor's *bank* project, adapted to a marketplace functional specification.
