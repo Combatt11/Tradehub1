@@ -11,6 +11,7 @@ import application.domain.exceptions.CartNotFoundException;
 import application.domain.models.Order;
 import application.domain.models.OrderItem;
 import application.domain.ports.out.OrderRepositoryPort;
+import application.domain.services.ClearCartService;
 import java.math.BigDecimal;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;

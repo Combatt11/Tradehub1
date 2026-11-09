@@ -1,4 +1,4 @@
-package application.domain.services.warehouse;
+package application.domain.services;
 
 import application.domain.models.Warehouse;
 import application.domain.ports.in.RegisterMarketplaceWarehouseUseCase;

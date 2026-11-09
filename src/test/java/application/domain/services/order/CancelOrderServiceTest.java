@@ -12,6 +12,7 @@ import application.domain.exceptions.OrderNotFoundException;
 import application.domain.exceptions.OrderOwnershipException;
 import application.domain.models.Order;
 import application.domain.ports.out.OrderRepositoryPort;
+import application.domain.services.CancelOrderService;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

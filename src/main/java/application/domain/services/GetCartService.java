@@ -1,4 +1,4 @@
-package application.domain.services.order;
+package application.domain.services;
 
 import application.domain.models.Order;
 import application.domain.ports.in.GetCartUseCase;

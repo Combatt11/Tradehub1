@@ -1,4 +1,4 @@
-package application.domain.services.order;
+package application.domain.services;
 
 import application.domain.exceptions.OrderNotFoundException;
 import application.domain.models.Order;

@@ -11,6 +11,7 @@ import application.domain.exceptions.OrderNotFinalizableException;
 import application.domain.models.Order;
 import application.domain.models.OrderItem;
 import application.domain.ports.out.OrderRepositoryPort;
+import application.domain.services.FinalizeOrderService;
 import java.math.BigDecimal;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;

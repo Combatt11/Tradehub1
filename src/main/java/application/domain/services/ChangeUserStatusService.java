@@ -1,4 +1,4 @@
-package application.domain.services.user;
+package application.domain.services;
 
 import application.domain.exceptions.UserNotFoundException;
 import application.domain.models.User;

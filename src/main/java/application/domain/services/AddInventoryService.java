@@ -1,4 +1,4 @@
-package application.domain.services.inventory;
+package application.domain.services;
 
 import application.domain.exceptions.ProductNotFoundException;
 import application.domain.exceptions.WarehouseNotFoundException;

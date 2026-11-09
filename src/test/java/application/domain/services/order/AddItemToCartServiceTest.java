@@ -22,6 +22,7 @@ import application.domain.ports.out.BuyerRepositoryPort;
 import application.domain.ports.out.InventoryRepositoryPort;
 import application.domain.ports.out.OrderRepositoryPort;
 import application.domain.ports.out.ProductRepositoryPort;
+import application.domain.services.AddItemToCartService;
 import java.math.BigDecimal;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;

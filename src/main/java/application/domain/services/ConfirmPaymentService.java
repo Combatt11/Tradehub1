@@ -1,28 +1,28 @@
-package application.domain.services.order;
+package application.domain.services;
 
 import application.domain.exceptions.OrderNotFoundException;
 import application.domain.models.Order;
-import application.domain.ports.in.CancelOrderUseCase;
+import application.domain.ports.in.ConfirmPaymentUseCase;
 import application.domain.ports.out.OrderRepositoryPort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-public class CancelOrderService implements CancelOrderUseCase {
+public class ConfirmPaymentService implements ConfirmPaymentUseCase {
 
   private final OrderRepositoryPort orderRepository;
 
-  public CancelOrderService(OrderRepositoryPort orderRepository) {
+  public ConfirmPaymentService(OrderRepositoryPort orderRepository) {
     this.orderRepository = orderRepository;
   }
 
   @Override
   @Transactional
-  public Order cancelOrder(String orderId, String buyerId) {
+  public Order confirmPayment(String orderId, String buyerId, String paymentReference) {
     Order order =
         orderRepository.findById(orderId).orElseThrow(() -> new OrderNotFoundException(orderId));
     order.ensureOwnedBy(buyerId);
-    order.cancel();
+    order.confirmPayment(paymentReference);
     return orderRepository.save(order);
   }
 }

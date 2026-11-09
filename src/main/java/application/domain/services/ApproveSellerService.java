@@ -1,4 +1,4 @@
-package application.domain.services.seller;
+package application.domain.services;
 
 import application.domain.exceptions.SellerNotFoundException;
 import application.domain.models.Seller;

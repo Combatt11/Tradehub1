@@ -12,6 +12,7 @@ import application.domain.exceptions.OrderNotPreparableException;
 import application.domain.models.Order;
 import application.domain.models.OrderItem;
 import application.domain.ports.out.OrderRepositoryPort;
+import application.domain.services.MarkOrderPreparingService;
 import java.math.BigDecimal;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
