@@ -11,6 +11,7 @@ import application.domain.exceptions.OrderNotDispatchableException;
 import application.domain.models.Order;
 import application.domain.models.OrderItem;
 import application.domain.ports.out.OrderRepositoryPort;
+import application.domain.services.MarkOrderDispatchedService;
 import java.math.BigDecimal;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;

@@ -1,26 +1,26 @@
-package application.domain.services.order;
+package application.domain.services;
 
 import application.domain.exceptions.OrderNotFoundException;
 import application.domain.models.Order;
-import application.domain.ports.in.MarkOrderDeliveredUseCase;
+import application.domain.ports.in.MarkOrderDispatchedUseCase;
 import application.domain.ports.out.OrderRepositoryPort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-public class MarkOrderDeliveredService implements MarkOrderDeliveredUseCase {
+public class MarkOrderDispatchedService implements MarkOrderDispatchedUseCase {
 
   private final OrderRepositoryPort orderRepository;
 
-  public MarkOrderDeliveredService(OrderRepositoryPort orderRepository) {
+  public MarkOrderDispatchedService(OrderRepositoryPort orderRepository) {
     this.orderRepository = orderRepository;
   }
 
   @Override
   @Transactional
-  public Order markDelivered(String orderId) {
+  public Order markDispatched(String orderId) {
     Order order = find(orderId);
-    order.markDelivered();
+    order.markDispatched();
     return orderRepository.save(order);
   }
 

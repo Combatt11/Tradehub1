@@ -1,4 +1,4 @@
-package application.domain.services.product;
+package application.domain.services;
 
 import application.domain.models.Product;
 import application.domain.ports.in.GetProductUseCase;

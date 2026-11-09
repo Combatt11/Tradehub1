@@ -1,4 +1,4 @@
-package application.domain.services.product;
+package application.domain.services;
 
 import application.domain.exceptions.ProductNotFoundException;
 import application.domain.models.Product;

@@ -19,6 +19,7 @@ import application.domain.models.Warehouse;
 import application.domain.ports.out.InventoryRepositoryPort;
 import application.domain.ports.out.ProductRepositoryPort;
 import application.domain.ports.out.WarehouseRepositoryPort;
+import application.domain.services.AddInventoryService;
 import java.math.BigDecimal;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;

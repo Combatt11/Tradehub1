@@ -1,29 +1,29 @@
-package application.domain.services.order;
+package application.domain.services;
 
 import application.domain.exceptions.CartNotFoundException;
 import application.domain.models.Order;
-import application.domain.ports.in.ClearCartUseCase;
+import application.domain.ports.in.SubmitOrderFromCartUseCase;
 import application.domain.ports.out.OrderRepositoryPort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-public class ClearCartService implements ClearCartUseCase {
+public class SubmitOrderFromCartService implements SubmitOrderFromCartUseCase {
 
   private final OrderRepositoryPort orderRepository;
 
-  public ClearCartService(OrderRepositoryPort orderRepository) {
+  public SubmitOrderFromCartService(OrderRepositoryPort orderRepository) {
     this.orderRepository = orderRepository;
   }
 
   @Override
   @Transactional
-  public Order clearCart(String buyerId) {
+  public Order submitOrder(String buyerId, String shippingAddress) {
     Order cart =
         orderRepository
             .findActiveCartByBuyerId(buyerId)
             .orElseThrow(() -> new CartNotFoundException(buyerId));
-    cart.clearItems();
+    cart.submitForPayment(shippingAddress);
     return orderRepository.save(cart);
   }
 }

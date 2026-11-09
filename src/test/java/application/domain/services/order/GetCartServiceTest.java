@@ -8,6 +8,7 @@ import static org.mockito.Mockito.when;
 
 import application.domain.models.Order;
 import application.domain.ports.out.OrderRepositoryPort;
+import application.domain.services.GetCartService;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

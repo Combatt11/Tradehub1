@@ -1,45 +1,46 @@
-package application.domain.services.user;
+package application.domain.services;
 
-import application.domain.models.Buyer;
+import application.domain.models.Seller;
 import application.domain.models.User;
-import application.domain.ports.in.RegisterBuyerUseCase;
-import application.domain.ports.out.BuyerRepositoryPort;
+import application.domain.ports.in.RegisterSellerUseCase;
+import application.domain.ports.out.SellerRepositoryPort;
 import application.domain.ports.out.UserRepositoryPort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-public class RegisterBuyerService implements RegisterBuyerUseCase {
+public class RegisterSellerService implements RegisterSellerUseCase {
   private final UserRepositoryPort userRepository;
-  private final BuyerRepositoryPort buyerRepository;
+  private final SellerRepositoryPort sellerRepository;
   private final PasswordEncoder passwordEncoder;
   private final EmailUniquenessValidator emailUniquenessValidator;
 
-  public RegisterBuyerService(
+  public RegisterSellerService(
       UserRepositoryPort userRepository,
-      BuyerRepositoryPort buyerRepository,
+      SellerRepositoryPort sellerRepository,
       PasswordEncoder passwordEncoder,
       EmailUniquenessValidator emailUniquenessValidator) {
     this.userRepository = userRepository;
-    this.buyerRepository = buyerRepository;
+    this.sellerRepository = sellerRepository;
     this.passwordEncoder = passwordEncoder;
     this.emailUniquenessValidator = emailUniquenessValidator;
   }
 
   @Override
   @Transactional
-  public User execute(
+  public Seller execute(
       String fullName,
       String email,
       String rawPassword,
       String identityDocument,
-      String primaryAddress) {
+      String businessName,
+      String taxId,
+      String contactPhone) {
     emailUniquenessValidator.ensureAvailable(email);
     String hash = passwordEncoder.encode(rawPassword);
-    User user = User.create(fullName, email, hash, User.Role.BUYER, identityDocument);
+    User user = User.create(fullName, email, hash, User.Role.SELLER, identityDocument);
     user = userRepository.save(user);
-    buyerRepository.save(Buyer.create(user.getId(), primaryAddress));
-    return user;
+    return sellerRepository.save(Seller.create(user.getId(), businessName, taxId, contactPhone));
   }
 }
