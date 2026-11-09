@@ -4,6 +4,7 @@ import application.adapters.persistence.jpa.entities.OrderJpaEntity;
 import application.domain.models.Order;
 import application.domain.models.OrderItem;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.List;
@@ -12,7 +13,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class OrderJpaMapper {
 
-  private final ObjectMapper objectMapper = new ObjectMapper();
+  private final ObjectMapper objectMapper =
+      new ObjectMapper()
+          .findAndRegisterModules()
+          .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
   public Order toDomain(OrderJpaEntity e) {
     if (e == null) return null;

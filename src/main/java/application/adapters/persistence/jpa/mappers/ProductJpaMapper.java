@@ -3,6 +3,7 @@ package application.adapters.persistence.jpa.mappers;
 import application.adapters.persistence.jpa.entities.ProductJpaEntity;
 import application.domain.models.Product;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.List;
@@ -11,7 +12,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class ProductJpaMapper {
 
-  private final ObjectMapper objectMapper = new ObjectMapper();
+  private final ObjectMapper objectMapper =
+      new ObjectMapper()
+          .findAndRegisterModules()
+          .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
   public Product toDomain(ProductJpaEntity e) {
     if (e == null) return null;

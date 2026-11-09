@@ -19,7 +19,10 @@ import application.adapters.security.JwtProvider;
 import application.adapters.security.SecurityConfig;
 import application.domain.exceptions.CartNotFoundException;
 import application.domain.exceptions.InsufficientStockException;
+import application.domain.exceptions.OrderAlreadyPaidException;
+import application.domain.exceptions.OrderNotCancellableException;
 import application.domain.exceptions.OrderNotFoundException;
+import application.domain.exceptions.OrderOwnershipException;
 import application.domain.models.Buyer;
 import application.domain.models.Order;
 import application.domain.models.OrderItem;
@@ -164,6 +167,19 @@ class BuyerControllerTest {
   }
 
   @Test
+  @DisplayName("POST /api/buyer/cart/items returns 400 on a malformed JSON body")
+  void addToCartReturns400OnMalformedJson() throws Exception {
+    mockMvc
+        .perform(
+            asBuyer(
+                post("/api/buyer/cart/items")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{not-json")))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.error").value("Malformed request body"));
+  }
+
+  @Test
   @DisplayName("POST /api/buyer/cart/items returns 400 when stock is insufficient")
   void addToCartReturns400OnInsufficientStock() throws Exception {
     givenBuyerProfile();
@@ -285,6 +301,26 @@ class BuyerControllerTest {
   }
 
   @Test
+  @DisplayName("POST /api/buyer/orders/{id}/pay returns 400 when the order is already paid")
+  void confirmPaymentReturns400WhenAlreadyPaid() throws Exception {
+    givenBuyerProfile();
+    when(confirmPaymentUseCase.confirmPayment(anyString(), anyString(), any()))
+        .thenThrow(new OrderAlreadyPaidException("order-1"));
+
+    mockMvc
+        .perform(
+            asBuyer(
+                post("/api/buyer/orders/order-1/pay")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(
+                        """
+                        {"paymentReference":"PAY-1"}
+                        """)))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.error").value("Order has already been paid: order-1"));
+  }
+
+  @Test
   @DisplayName("POST /api/buyer/orders/{id}/cancel returns 200 when the order is cancelled")
   void cancelOrderReturns200() throws Exception {
     givenBuyerProfile();
@@ -296,6 +332,46 @@ class BuyerControllerTest {
         .perform(asBuyer(post("/api/buyer/orders/order-1/cancel")))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.status").value("CANCELLED"));
+  }
+
+  @Test
+  @DisplayName("POST /api/buyer/orders/{id}/cancel returns 404 when the order is missing")
+  void cancelOrderReturns404WhenOrderNotFound() throws Exception {
+    givenBuyerProfile();
+    when(cancelOrderUseCase.cancelOrder(anyString(), anyString()))
+        .thenThrow(new OrderNotFoundException("order-404"));
+
+    mockMvc
+        .perform(asBuyer(post("/api/buyer/orders/order-404/cancel")))
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.error").value("Order not found: order-404"));
+  }
+
+  @Test
+  @DisplayName("POST /api/buyer/orders/{id}/cancel returns 403 when the buyer does not own it")
+  void cancelOrderReturns403WhenNotOwner() throws Exception {
+    givenBuyerProfile();
+    when(cancelOrderUseCase.cancelOrder(anyString(), anyString()))
+        .thenThrow(new OrderOwnershipException("order-1", BUYER_ID));
+
+    mockMvc
+        .perform(asBuyer(post("/api/buyer/orders/order-1/cancel")))
+        .andExpect(status().isForbidden())
+        .andExpect(jsonPath("$.error").exists());
+  }
+
+  @Test
+  @DisplayName("POST /api/buyer/orders/{id}/cancel returns 400 when the order is not cancellable")
+  void cancelOrderReturns400WhenNotCancellable() throws Exception {
+    givenBuyerProfile();
+    when(cancelOrderUseCase.cancelOrder(anyString(), anyString()))
+        .thenThrow(new OrderNotCancellableException("order-1", "DELIVERED"));
+
+    mockMvc
+        .perform(asBuyer(post("/api/buyer/orders/order-1/cancel")))
+        .andExpect(status().isBadRequest())
+        .andExpect(
+            jsonPath("$.error").value(org.hamcrest.Matchers.containsString("cannot be cancelled")));
   }
 
   @Test
